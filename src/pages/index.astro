@@ -1,0 +1,9 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { LoginForm } from "@/components/LoginForm";
+import { ThemeToggle } from "@/components/themeToggle";
+---
+
+<Layout title="Welcome to Astro.">
+    <LoginForm client:load />
+</Layout>
