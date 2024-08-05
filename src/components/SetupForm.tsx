@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,57 +12,86 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ThemeToggle } from "@/components/themeToggle";
 
-/*import { Database } from "bun:sqlite";
-import { loadConfig } from "@/lib/server-utils";
-
-Functions we can do:
-let config = await loadConfig();
-console.log(config.secret); //jwt secret
-const db = new Database("statusdb.sqlite"); //db with users table (id, username, password, permLevel)
-const password = "super-secure-pa$$word";
-const hash = await Bun.password.hash(password);
-
-const isMatch = await Bun.password.verify(password, hash);
-// this form should is to setup the first user with perm level 0 and store in db
-// we also need a way to store authentication in the session or something for later use in this astro project
-*/
-
 export function SetupForm() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    const payload = JSON.stringify({ username, password });
+    try {
+      const response = await fetch("/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: payload,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.log("Error response:", errorData);
+        throw new Error(errorData || "Registration failed");
+      } else {
+        // Redirect to the base URL on successful registration
+        window.location.href = "/";
+      }
+    } catch (err) {
+      setError(err.message || "An error occurred during registration");
+    }
+  };
+
   return (
     <Card className="w-full max-w-sm">
-      <CardHeader>
-        <div
-          className="flex justify-between items-center"
-          style={{ fontSize: "1.5rem" }}
-        >
-          <CardTitle className="text-2xl">Welcome</CardTitle>
-          <ThemeToggle />
-        </div>
-        <CardDescription>Please create an account to continue</CardDescription>
-      </CardHeader>
-      <CardContent className="grid gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="username">Username</Label>
-          <Input
-            id="username"
-            type="username"
-            placeholder="johnappleseed"
-            required
-          />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="password">Password</Label>
-          <Input
-            id="password"
-            type="password"
-            placeholder="UnicornsAreReal123"
-            required
-          />
-        </div>
-      </CardContent>
-      <CardFooter>
-        <Button className="w-full">Continue</Button>
-      </CardFooter>
+      <form onSubmit={handleSubmit}>
+        <CardHeader>
+          <div
+            className="flex justify-between items-center"
+            style={{ fontSize: "1.5rem" }}
+          >
+            <CardTitle className="text-2xl">Welcome</CardTitle>
+            <ThemeToggle />
+          </div>
+          <CardDescription>
+            Please create an account to continue
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="username">Username</Label>
+            <Input
+              id="username"
+              name="username"
+              type="username"
+              placeholder="johnappleseed"
+              required
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              placeholder="UnicornsAreReal123"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+        </CardContent>
+        <CardFooter>
+          <Button className="w-full" type="submit">
+            Continue
+          </Button>
+        </CardFooter>
+      </form>
     </Card>
   );
 }

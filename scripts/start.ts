@@ -26,5 +26,5 @@ const runBuildIfNeeded = async () => {
 await runBuildIfNeeded();
 await Promise.all([
   $`bun --watch run src/backend.ts`,
-  $`bunx --bun astro preview`,
+  $`bun run ./dist/server/entry.mjs`,
 ]);
