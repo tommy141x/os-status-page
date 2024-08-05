@@ -13,14 +13,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ThemeToggle } from "@/components/themeToggle";
+import { Skeleton } from "@/components/ui/skeleton";
 import * as yaml from "js-yaml";
 
 export function Settings({ user }) {
   const [settings, setSettings] = useState<any>({ services: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  console.log("Page Loaded");
 
   useEffect(() => {
     // Fetch current settings on component mount
@@ -130,7 +129,46 @@ export function Settings({ user }) {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  const SettingsSkeleton = () => (
+    <Card className="w-full max-w-4xl">
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <Skeleton className="h-8 w-32" />
+          <Skeleton className="h-8 w-8 rounded-full" />
+        </div>
+        <Skeleton className="h-4 w-3/4 mt-2" />
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <Skeleton className="h-6 w-1/4" />
+          <div className="space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="border rounded-lg p-4">
+                <Skeleton className="h-8 w-full mb-2" />
+                <Skeleton className="h-20 w-full mb-2" />
+                <Skeleton className="h-8 w-full mb-2" />
+                <Skeleton className="h-8 w-1/4" />
+              </div>
+            ))}
+          </div>
+          <Skeleton className="h-10 w-full" />
+          <div className="space-y-2">
+            <Skeleton className="h-6 w-1/4" />
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-6 w-1/4" />
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-6 w-1/4" />
+            <Skeleton className="h-8 w-full" />
+          </div>
+        </div>
+      </CardContent>
+      <CardFooter>
+        <Skeleton className="h-10 w-full" />
+      </CardFooter>
+    </Card>
+  );
+
+  if (loading) return <SettingsSkeleton />;
   if (error) return <div>{error}</div>;
 
   return (
