@@ -1,10 +1,8 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import { Settings } from "@/components/Settings";
-
-const user = Astro.locals.user || {}; // Extract user data from context.locals
+import { Dashboard } from "@/components/Dashboard";
 ---
 
-<Layout title="Welcome to Astro.">
-    <Settings user={user} client:load />
+<Layout title="Status Page">
+    <Dashboard client:load />
 </Layout>

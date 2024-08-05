@@ -1,5 +1,5 @@
 services:
-  - name: Website
+  - name: Websiteee
     description: The main website for Tornado Emergency.
     url: https://tornadoemergency.net
     hide_url: false
@@ -14,7 +14,6 @@ services:
     url: https://timmygsteeeudios.com
     hide_url: true
     expected_response_code: 200
-
 data_retention_days: 30
 check_interval_seconds: 300
-secret: "supersecretkey"
+secret: supersecretkey

@@ -55,6 +55,7 @@ const middleware: MiddlewareResponseHandler = async (context, next) => {
           db.close();
           return Response.redirect(new URL("/", context.url), 302);
         }
+
         context.locals.user = {
           username: userData.username,
           permLevel: userData.permLevel,
@@ -64,6 +65,17 @@ const middleware: MiddlewareResponseHandler = async (context, next) => {
       console.error("Error verifying token:", error);
       // Handle token verification errors if necessary
     }
+  }
+
+  if (currentPath === "/settings" && !context.locals.user.permLevel == 0) {
+    db.close();
+    return Response.redirect(new URL("/", context.url), 302);
+  }
+
+  // return 401 if user is not logged in and trying to access a protected route such as /api
+  if (currentPath.startsWith("/api") && !context.locals.user && !isEmpty) {
+    db.close();
+    return new Response("Unauthorized", { status: 401 });
   }
 
   db.close();

@@ -1,6 +1,7 @@
 import { Database } from "bun:sqlite";
 import { file } from "bun";
 import yaml from "js-yaml";
+import { loadConfig } from "./lib/server-utils";
 
 const db = new Database("statusdb.sqlite");
 
@@ -37,40 +38,12 @@ db.exec(`
   );
 `);
 
-// Interfaces
-interface ServiceConfig {
-  name: string;
-  description: string;
-  url: string;
-  hide_url: boolean;
-  expected_response_code: number;
-}
-
-interface Config {
-  services: ServiceConfig[];
-  data_retention_days: number;
-  check_interval_seconds: number;
-}
-
-// Load configuration from YAML file
-async function loadConfig(): Promise<Config> {
-  console.log("Loading config");
-  try {
-    const configFile = file("config.yml");
-    const configFileContent = await configFile.text();
-    const config = yaml.load(configFileContent) as Config;
-    return config;
-  } catch (error) {
-    console.error("Error loading configuration:", error);
-    return {} as Config;
-  }
-}
-
 let config = await loadConfig();
 
 // Check service status
 async function checkService(service: ServiceConfig): Promise<string> {
   try {
+    console.log("Checking " + service.url + "...");
     const response = await fetch(service.url);
     if (response.status === service.expected_response_code) {
       return "online";
@@ -107,4 +80,7 @@ setInterval(() => {
   updateServiceStatus();
   removeOldData();
 }, config.check_interval_seconds * 1000);
+console.log(
+  "Updating website's every " + config.check_interval_seconds + " seconds",
+);
 updateServiceStatus();

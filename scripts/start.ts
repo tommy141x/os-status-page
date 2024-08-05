@@ -25,6 +25,6 @@ const runBuildIfNeeded = async () => {
 // Run build command if necessary and start the watchers
 await runBuildIfNeeded();
 await Promise.all([
-  $`bun --watch run src/backend.ts`,
+  $`bun run src/backend.ts`,
   $`bun run ./dist/server/entry.mjs`,
 ]);
