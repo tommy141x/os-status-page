@@ -3,17 +3,12 @@ services:
     description: The main website for Tornado Emergency.
     url: https://tornadoemergency.net
     hide_url: false
-    expected_response_code: 200
+    expected_response_code: 201
   - name: API
     description: The API for Tornado Emergency.
     url: https://timmygstudios.com
     hide_url: true
-    expected_response_code: 200
-  - name: Broken test
-    description: The API for Tornado Emergency.
-    url: https://timmygsteeeudios.com
-    hide_url: true
-    expected_response_code: 200
-data_retention_days: 30
-check_interval_seconds: 300
+    expected_response_code: 201
+data_retention_days: '30'
+check_interval_seconds: '300'
 secret: supersecretkey

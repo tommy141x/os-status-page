@@ -1,8 +1,11 @@
 ---
 import Layout from "@/layouts/Layout.astro";
 import { Dashboard } from "@/components/Dashboard";
+import { Toaster } from "@/components/ui/sonner";
+
+const { user } = Astro.locals;
 ---
 
 <Layout title="Status Page">
-    <Dashboard client:load />
+    <Dashboard user={user} client:load />
 </Layout>

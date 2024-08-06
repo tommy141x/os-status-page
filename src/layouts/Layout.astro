@@ -5,6 +5,7 @@ interface Props {
 
 const { title } = Astro.props;
 import { ViewTransitions } from "astro:transitions";
+import { Toaster } from "@/components/ui/sonner";
 import "@/styles/globals.css";
 ---
 
@@ -25,7 +26,7 @@ import "@/styles/globals.css";
                 document.documentElement.classList.add(savedTheme);
             })();
         </script>
-        <ViewTransitions />
+        <!--<ViewTransitions /> BREAKS TOASTER-->
     </head>
     <body>
         <div
@@ -33,6 +34,7 @@ import "@/styles/globals.css";
         >
             <slot />
         </div>
+        <Toaster client:load />
     </body>
 </html>
 

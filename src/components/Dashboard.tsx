@@ -1,56 +1,99 @@
-// components/LandingPage.jsx
+"use client";
+
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { ThemeToggle } from "@/components/themeToggle";
+import { HeaderNav } from "@/components/headerNav";
+
+import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
+
+import {
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+
+const chartData = [
+  { month: "January", desktop: 186, mobile: 80 },
+  { month: "February", desktop: 305, mobile: 200 },
+  { month: "March", desktop: 237, mobile: 120 },
+  { month: "April", desktop: 73, mobile: 190 },
+  { month: "May", desktop: 209, mobile: 130 },
+  { month: "June", desktop: 214, mobile: 140 },
+];
+
+const chartConfig = {
+  desktop: {
+    label: "Desktop",
+    color: "#2563eb",
+  },
+  mobile: {
+    label: "Mobile",
+    color: "#60a5fa",
+  },
+};
+
+// Define the tabs and their contents
 
 export function Dashboard({ user }) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background text-foreground">
-      <header className="w-full flex justify-end p-4">
-        <ThemeToggle />
-      </header>
-
-      <section className="text-center mb-12">
-        <h1 className="text-4xl font-bold mb-4 text-primary">Status Page</h1>
-        <p className="text-lg mb-6 text-foreground">
-          We provide amazing solutions for your needs. Explore our services and
-          products below.
-        </p>
-        <Button variant="outline" className="mb-4">
-          Kill Server
-        </Button>
-      </section>
-
-      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <Card>
-          <h2 className="text-xl font-semibold mb-2 text-primary">
-            Service One
-          </h2>
-          <p className="mb-4 text-foreground">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-          </p>
-          <Button variant="secondary">Learn More</Button>
-        </Card>
-        <Card>
-          <h2 className="text-xl font-semibold mb-2 text-primary">
-            Service Two
-          </h2>
-          <p className="mb-4 text-foreground">
-            Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-          </p>
-          <Button variant="secondary">Learn More</Button>
-        </Card>
-        <Card>
-          <h2 className="text-xl font-semibold mb-2 text-primary">
-            Service Three
-          </h2>
-          <p className="mb-4 text-foreground">
-            Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris
-            nisi ut aliquip ex ea commodo consequat.
-          </p>
-          <Button variant="secondary">Learn More</Button>
-        </Card>
-      </section>
-    </div>
+    <HeaderNav
+      user={user}
+      tabs={[
+        {
+          value: "status",
+          label: "Status",
+          content: (
+            <div className="flex-grow p-4 overflow-auto max-w-7xl mx-auto w-full">
+              <section className="text-center mb-12">
+                <h1 className="text-4xl font-bold mb-4 text-primary">
+                  All services are online
+                </h1>
+                <p className="text-lg mb-6 text-foreground">
+                  Last updated 2 minutes ago
+                </p>
+              </section>
+              <ChartContainer
+                config={chartConfig}
+                className="min-h-[200px] w-full"
+              >
+                <BarChart accessibilityLayer data={chartData}>
+                  <CartesianGrid vertical={false} />
+                  <XAxis
+                    dataKey="month"
+                    tickLine={false}
+                    tickMargin={10}
+                    axisLine={false}
+                    tickFormatter={(value) => value.slice(0, 3)}
+                  />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <ChartLegend content={<ChartLegendContent />} />
+                  <Bar
+                    dataKey="desktop"
+                    fill="var(--color-desktop)"
+                    radius={4}
+                  />
+                  <Bar dataKey="mobile" fill="var(--color-mobile)" radius={4} />
+                </BarChart>
+              </ChartContainer>
+            </div>
+          ),
+        },
+        {
+          value: "incidents",
+          label: "Incidents",
+          content: (
+            <div className="flex-grow p-4 overflow-auto max-w-7xl mx-auto w-full">
+              <section className="text-center mb-12">
+                <h1 className="text-4xl font-bold mb-4 text-primary">
+                  Latest Incidents
+                </h1>
+                <p className="text-lg mb-6 text-foreground">hi</p>
+              </section>
+            </div>
+          ),
+        },
+      ]}
+    />
   );
 }
