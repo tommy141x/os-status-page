@@ -73,7 +73,12 @@ const middleware: MiddlewareResponseHandler = async (context, next) => {
   }
 
   // return 401 if user is not logged in and trying to access a protected route such as /api
-  if (currentPath.startsWith("/api") && !context.locals.user && !isEmpty) {
+  if (
+    currentPath.startsWith("/api") &&
+    !context.locals.user &&
+    !isEmpty &&
+    currentPath.endsWith("/status") === false
+  ) {
     db.close();
     return new Response("Unauthorized", { status: 401 });
   }

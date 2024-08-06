@@ -9,7 +9,7 @@ const db = new Database("statusdb.sqlite");
 db.exec(`
   CREATE TABLE IF NOT EXISTS services (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    service_name TEXT,
+    url TEXT,
     status TEXT CHECK(status IN ('online', 'maintenance', 'issues', 'offline')),
     timestamp INTEGER
   );
@@ -63,24 +63,30 @@ async function updateServiceStatus() {
   for (const service of config.services) {
     const status = await checkService(service);
     db.prepare(
-      "INSERT INTO services (service_name, status, timestamp) VALUES (?, ?, ?)",
-    ).run(service.name, status, timestamp);
+      "INSERT INTO services (url, status, timestamp) VALUES (?, ?, ?)",
+    ).run(service.url, status, timestamp);
   }
 }
 
 // Remove old data from the database
 function removeOldData() {
   const cutoffTimestamp =
-    Date.now() - config.data_retention_days * 24 * 60 * 60 * 1000;
+    Date.now() - config.data_retention_hours * 60 * 60 * 1000;
   db.prepare("DELETE FROM services WHERE timestamp < ?").run(cutoffTimestamp);
 }
 
 // Periodically update service status and remove old data
-setInterval(() => {
-  updateServiceStatus();
-  removeOldData();
-}, config.check_interval_seconds * 1000);
+setInterval(
+  () => {
+    updateServiceStatus();
+    removeOldData();
+  },
+  config.check_interval_minutes * 60 * 1000,
+);
+
 console.log(
-  "Updating website's every " + config.check_interval_seconds + " seconds",
+  "Updating website statuses every " +
+    config.check_interval_minutes +
+    " minutes.",
 );
 updateServiceStatus();

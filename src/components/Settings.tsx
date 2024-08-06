@@ -28,7 +28,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { GearIcon, CrossCircledIcon } from "@radix-ui/react-icons";
+import {
+  GearIcon,
+  CrossCircledIcon,
+  CheckCircledIcon,
+  MinusCircledIcon,
+  QuestionMarkCircledIcon,
+} from "@radix-ui/react-icons";
 import * as yaml from "js-yaml";
 import { HeaderNav } from "@/components/headerNav";
 
@@ -47,8 +53,7 @@ function ServiceDialog({ service, onClose, onSave, isNew }) {
   };
 
   const handleCheckboxChange = (e) => {
-    const { name, checked } = e.target;
-    setLocalService((prev) => ({ ...prev, [name]: checked }));
+    setLocalService((prev) => ({ ...prev, hide_url: e }));
   };
 
   const handleSave = () => {
@@ -143,7 +148,7 @@ function ServiceDialog({ service, onClose, onSave, isNew }) {
                 id="hide_url"
                 name="hide_url"
                 checked={localService.hide_url}
-                onChange={handleCheckboxChange}
+                onCheckedChange={handleCheckboxChange}
               />
             </div>
           </div>
@@ -293,11 +298,10 @@ export function Settings({ user }) {
                     <div className="space-y-4">
                       {settings.services.map((service, index) => (
                         <div key={index} className="flex items-center gap-4">
-                          <Card className="flex-grow p-4">
+                          <Card className="flex-grow p-1">
                             <CardHeader>
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center">
-                                  <GearIcon className="mr-2" />
                                   <div>
                                     <CardTitle>{service.name}</CardTitle>
                                     <CardDescription>
@@ -338,33 +342,33 @@ export function Settings({ user }) {
                       Other Application Settings
                     </CardDescription>
                     <div>
-                      <Label htmlFor="data-retention-days">
-                        Data Retention Days
+                      <Label htmlFor="data-retention-hours">
+                        Data Retention Hours
                       </Label>
                       <Input
-                        id="data-retention-days"
-                        name="data_retention_days"
+                        id="data-retention-hours"
+                        name="data_retention_hours"
                         type="number"
-                        value={settings.data_retention_days || ""}
+                        value={settings.data_retention_hours || ""}
                         onChange={(e) =>
                           setSettings((prev) => ({
                             ...prev,
-                            data_retention_days: e.target.value,
+                            data_retention_hours: e.target.value,
                           }))
                         }
                       />
-                      <Label htmlFor="check-interval-seconds">
-                        Check Interval Seconds
+                      <Label htmlFor="check-interval-minutes">
+                        Check Interval Minutes
                       </Label>
                       <Input
-                        id="check-interval-seconds"
-                        name="check_interval_seconds"
+                        id="check-interval-minutes"
+                        name="check_interval_minutes"
                         type="number"
-                        value={settings.check_interval_seconds || ""}
+                        value={settings.check_interval_minutes || ""}
                         onChange={(e) =>
                           setSettings((prev) => ({
                             ...prev,
-                            check_interval_seconds: e.target.value,
+                            check_interval_minutes: e.target.value,
                           }))
                         }
                       />
