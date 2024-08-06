@@ -21,10 +21,10 @@ export const POST: APIRoute = async ({ request, redirect }) => {
       return new Response("Invalid JSON in request body", { status: 400 });
     }
 
-    const { username, password } = data;
+    const { email, password } = data;
 
-    if (!username || !password) {
-      return new Response("Username and password are required", {
+    if (!email || !password) {
+      return new Response("Email and password are required", {
         status: 400,
       });
     }
@@ -34,16 +34,16 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 
     // Insert the new user into the database
     const stmt = db.prepare(`
-      INSERT INTO users (username, password, permLevel)
+      INSERT INTO users (email, password, permLevel)
       VALUES (?, ?, ?)
     `);
-    stmt.run(username, hashedPassword, 0);
+    stmt.run(email, hashedPassword, 0);
 
     // Duration in seconds for 3 weeks
     const THREE_WEEKS_IN_SECONDS = 3 * 7 * 24 * 60 * 60; // 1814400 seconds
 
     // Create a JWT token for the session with a 3-week expiration
-    const token = jwt.sign({ username }, JWT_SECRET, {
+    const token = jwt.sign({ email }, JWT_SECRET, {
       expiresIn: THREE_WEEKS_IN_SECONDS,
     });
 
@@ -57,7 +57,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
     return new Response(null, { status: 302, headers });
   } catch (error) {
     if (error.code === "SQLITE_CONSTRAINT_UNIQUE") {
-      return new Response("Username already exists", { status: 409 });
+      return new Response("Email already exists", { status: 409 });
     }
     return new Response("An error occurred during registration", {
       status: 500,

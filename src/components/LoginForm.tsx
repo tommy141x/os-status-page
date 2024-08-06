@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { ThemeToggle } from "@/components/themeToggle";
 
 export function LoginForm() {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
@@ -21,7 +21,7 @@ export function LoginForm() {
     e.preventDefault();
     setError("");
 
-    const payload = JSON.stringify({ username, password });
+    const payload = JSON.stringify({ email, password });
     try {
       const response = await fetch("/api/login", {
         method: "POST",
@@ -59,15 +59,15 @@ export function LoginForm() {
         </CardHeader>
         <CardContent className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="email">Email</Label>
             <Input
-              id="username"
-              name="username"
-              type="username"
-              placeholder="johnappleseed"
+              id="email"
+              name="email"
+              type="email"
+              placeholder="john@appleseed.com"
               required
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </div>
           <div className="grid gap-2">

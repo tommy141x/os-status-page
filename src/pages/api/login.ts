@@ -21,35 +21,35 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response("Invalid JSON in request body", { status: 400 });
     }
 
-    const { username, password } = data;
+    const { email, password } = data;
 
-    if (!username || !password) {
-      return new Response("Username and password are required", {
+    if (!email || !password) {
+      return new Response("Email and password are required", {
         status: 400,
       });
     }
 
     // Fetch the user from the database
     const stmt = db.prepare(`
-      SELECT * FROM users WHERE username = ?
+      SELECT * FROM users WHERE email = ?
     `);
-    const user = stmt.get(username);
+    const user = stmt.get(email);
 
     if (!user) {
-      return new Response("Invalid username or password", { status: 401 });
+      return new Response("Invalid email or password", { status: 401 });
     }
 
     // Verify the password
     const isPasswordValid = await Bun.password.compare(password, user.password);
     if (!isPasswordValid) {
-      return new Response("Invalid username or password", { status: 401 });
+      return new Response("Invalid email or password", { status: 401 });
     }
 
     // Duration in seconds for 3 weeks
     const THREE_WEEKS_IN_SECONDS = 3 * 7 * 24 * 60 * 60; // 1814400 seconds
 
     // Create a JWT token for the session with a 3-week expiration
-    const token = jwt.sign({ username }, JWT_SECRET, {
+    const token = jwt.sign({ email }, JWT_SECRET, {
       expiresIn: THREE_WEEKS_IN_SECONDS,
     });
 

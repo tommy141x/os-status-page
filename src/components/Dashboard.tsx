@@ -172,7 +172,9 @@ export function Dashboard({ user }) {
                       status={statusData.overallStatus}
                       size="3rem"
                     />
-                    <h1>Some services are having issues</h1>
+                    <h1 className="text-primary font-bold text-4xl my-4">
+                      Some services are having issues
+                    </h1>
                   </div>
                 )}
                 <p className="text-md mb-6 text-muted-foreground">
@@ -181,98 +183,107 @@ export function Dashboard({ user }) {
                 </p>
               </section>
 
-              <Card className="bg-secondary">
-                <CardHeader>
-                  <div
-                    className="flex justify-between items-center"
-                    style={{ fontSize: "1.5rem" }}
-                  >
-                    <CardTitle>Status by Service</CardTitle>
-                    <Badge className="cursor-default">Operational</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-8 mb-4">
-                    {statusData.services.map((service) => (
-                      <div key={service.service_name} className="p-4">
-                        <div className="flex justify-between items-center">
-                          <HoverCard>
-                            <HoverCardTrigger asChild>
-                              {service.hide_url ? (
-                                <Button
-                                  variant="ghost"
-                                  className="text-xl text-primary font-semibold -ml-4 flex items-center mb-2 cursor-default"
-                                >
-                                  <StatusIconMap
-                                    status={service.status}
-                                    size="1.4rem"
-                                  />
-                                  {service.name}
-                                </Button>
-                              ) : (
-                                <Button
-                                  variant="link"
-                                  className="text-xl text-primary font-semibold -ml-4 flex items-center mb-2"
-                                  onClick={() =>
-                                    window.open(service.url, "_blank")
-                                  }
-                                >
-                                  <StatusIconMap
-                                    status={service.status}
-                                    size="1.4rem"
-                                  />
-                                  {service.name}
-                                </Button>
-                              )}
-                            </HoverCardTrigger>
-                            <HoverCardContent className="w-80">
-                              <div className="flex justify-between space-x-4">
-                                <div className="space-y-1">
-                                  <h4 className="text-sm font-semibold">
+              {statusData.categories.map((category, categoryIndex) => (
+                <Card key={categoryIndex} className="bg-secondary mb-8">
+                  <CardHeader>
+                    <div
+                      className="flex justify-between items-center"
+                      style={{ fontSize: "1.5rem" }}
+                    >
+                      <CardTitle>{category.name}</CardTitle>
+                      <Badge className="cursor-default">
+                        {category.services.every(
+                          (service) => service.status === "online",
+                        )
+                          ? "Operational"
+                          : "Issues Detected"}
+                      </Badge>
+                    </div>
+                    <CardDescription>{category.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-8 mb-4">
+                      {category.services.map((service) => (
+                        <div key={service.name} className="p-4">
+                          <div className="flex justify-between items-center">
+                            <HoverCard>
+                              <HoverCardTrigger asChild>
+                                {service.hide_url ? (
+                                  <Button
+                                    variant="ghost"
+                                    className="text-xl text-primary font-semibold -ml-4 flex items-center mb-2 cursor-default"
+                                  >
+                                    <StatusIconMap
+                                      status={service.status}
+                                      size="1.4rem"
+                                    />
                                     {service.name}
-                                  </h4>
-                                  <p className="text-sm">
-                                    {service.description || "No description"}
-                                  </p>
-                                  <div className="flex items-center pt-2">
-                                    <span className="text-xs text-muted-foreground">
-                                      {new Date(
-                                        service.latest_timestamp,
-                                      ).toLocaleString()}
-                                    </span>
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    variant="link"
+                                    className="text-xl text-primary font-semibold -ml-4 flex items-center mb-2"
+                                    onClick={() =>
+                                      window.open(service.url, "_blank")
+                                    }
+                                  >
+                                    <StatusIconMap
+                                      status={service.status}
+                                      size="1.4rem"
+                                    />
+                                    {service.name}
+                                  </Button>
+                                )}
+                              </HoverCardTrigger>
+                              <HoverCardContent className="w-80">
+                                <div className="flex justify-between space-x-4">
+                                  <div className="space-y-1">
+                                    <h4 className="text-sm font-semibold">
+                                      {service.name}
+                                    </h4>
+                                    <p className="text-sm">
+                                      {service.description || "No description"}
+                                    </p>
+                                    <div className="flex items-center pt-2">
+                                      <span className="text-xs text-muted-foreground">
+                                        {new Date(
+                                          service.latest_timestamp,
+                                        ).toLocaleString()}
+                                      </span>
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            </HoverCardContent>
-                          </HoverCard>
-                          <h2
-                            className={`${getStatusColor(
-                              service.status,
-                              true,
-                            )} mb-2`}
-                          >
-                            {service.uptime_percentage} uptime
-                          </h2>
+                              </HoverCardContent>
+                            </HoverCard>
+                            <h2
+                              className={`${getStatusColor(
+                                service.status,
+                                true,
+                              )} mb-2`}
+                            >
+                              {service.uptime_percentage} uptime
+                            </h2>
+                          </div>
+                          <StatusChart
+                            data={
+                              service.hourly_status || new Array(30).fill(null)
+                            }
+                          />
+                          <div className="flex justify-between items-center p-1">
+                            <h2 className="text-sm text-muted-foreground mt-2">
+                              {statusData.timeRange} ago
+                            </h2>
+                            <h2 className="text-sm text-muted-foreground mt-2">
+                              Now
+                            </h2>
+                          </div>
+                          <Separator className="mt-4 -mb-8 bg-background" />
                         </div>
-                        <StatusChart
-                          data={
-                            service.hourly_status || new Array(30).fill(null)
-                          }
-                        />
-                        <div className="flex justify-between items-center p-1">
-                          <h2 className="text-sm text-muted-foreground mt-2">
-                            {statusData.timeRange} ago
-                          </h2>
-                          <h2 className="text-sm text-muted-foreground mt-2">
-                            Today
-                          </h2>
-                        </div>
-                        <Separator className="mt-4 -mb-8 bg-background" />
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           ),
         },

@@ -1,14 +1,29 @@
-services:
-  - name: Website
-    description: The main website for Tornado Emergency.
-    url: https://tornadoemergency.net
-    hide_url: false
-    expected_response_code: 200
-  - name: TM API Services
-    description: The API for Tornado Emergency.
-    url: https://timmygstudios.com
-    hide_url: true
-    expected_response_code: 200
+categories:
+  - name: Web Services
+    description: Main web-facing services for Tornado Emergency
+    services:
+      - name: Website
+        description: The main website for Tornado Emergency.
+        url: https://tornadoemergency.net
+        hide_url: false
+        expected_response_code: 200
+  - name: Test
+    description: Test category
+    services:
+      - name: TM API Services
+        description: The API for Tornado Emergency.
+        url: https://timmygstudios.com
+        hide_url: true
+        expected_response_code: 200
+  - name: Test2
+    description: Test3
+    services:
+      - name: Test Broken
+        description: test
+        url: >-
+          https://steamcomwwwwwwwwmunity.com/sharedfiles/filedetails/?id=2778144294&insideModal=0&requirelogin=1
+        hide_url: false
+        expected_response_code: 200
 data_retention_hours: '24'
 check_interval_minutes: '15'
 secret: supersecretkey

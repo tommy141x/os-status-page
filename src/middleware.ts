@@ -41,13 +41,13 @@ const middleware: MiddlewareResponseHandler = async (context, next) => {
     try {
       // Verify the token
       const decoded = jwt.verify(token, JWT_SECRET);
-      const username = decoded.username;
+      const email = decoded.email;
 
       // Fetch user data from the database
       const userStmt = db.prepare(
-        "SELECT username, permLevel FROM users WHERE username = ?",
+        "SELECT email, permLevel FROM users WHERE email = ?",
       );
-      const userData = userStmt.get(username);
+      const userData = userStmt.get(email);
 
       if (userData) {
         // Attach user data to the context
@@ -57,7 +57,7 @@ const middleware: MiddlewareResponseHandler = async (context, next) => {
         }
 
         context.locals.user = {
-          username: userData.username,
+          email: userData.email,
           permLevel: userData.permLevel,
         };
       }

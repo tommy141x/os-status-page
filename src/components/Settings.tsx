@@ -12,8 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "sonner";
+//import { toast } from "sonner"; BROKEN BY VIEW TRANSITIONS
 import {
   Dialog,
   DialogContent,
@@ -29,6 +28,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+  PlusIcon,
   GearIcon,
   CrossCircledIcon,
   CheckCircledIcon,
@@ -163,12 +163,80 @@ function ServiceDialog({ service, onClose, onSave, isNew }) {
   );
 }
 
+function CategoryDialog({ category, onClose, onSave, isNew }) {
+  const [localCategory, setLocalCategory] = useState(category);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setLocalCategory((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSave = () => {
+    onSave(localCategory);
+    onClose();
+  };
+
+  return (
+    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <div className="flex items-center">
+            <GearIcon className="mr-2" />
+            <DialogTitle>
+              {isNew ? "Add Category" : "Edit Category"}
+            </DialogTitle>
+          </div>
+          <DialogDescription>
+            {isNew
+              ? "Add a new category."
+              : "Modify the details for this category."}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-1 gap-4">
+            <div className="flex flex-col">
+              <Label htmlFor="name" className="mb-2">
+                Name
+              </Label>
+              <Input
+                id="name"
+                name="name"
+                value={localCategory.name}
+                onChange={handleChange}
+                className="w-full"
+              />
+            </div>
+            <div className="flex flex-col">
+              <Label htmlFor="description" className="mb-2">
+                Description
+              </Label>
+              <Textarea
+                id="description"
+                name="description"
+                value={localCategory.description}
+                onChange={handleChange}
+                className="w-full"
+              />
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button type="button" onClick={handleSave} className="ml-2">
+            Save changes
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function Settings({ user }) {
-  const [settings, setSettings] = useState({ services: [] });
+  const [settings, setSettings] = useState({ categories: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [dialogType, setDialogType] = useState(null); // Manage dialog type: "add" or "edit"
+  const [dialogType, setDialogType] = useState(null);
   const [selectedService, setSelectedService] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [editIndex, setEditIndex] = useState(null);
 
   useEffect(() => {
@@ -205,13 +273,10 @@ export function Settings({ user }) {
           },
           body: yamlData,
         });
-        toast("Settings Saved");
       } catch (error) {
-        toast("There was an error saving settings. Please try again.");
         console.error("Failed to autosave settings", error);
       }
     };
-    // Autosave on settings change
     if (!loading) {
       autosave();
     }
@@ -219,29 +284,71 @@ export function Settings({ user }) {
 
   const handleServiceSave = (updatedService) => {
     if (editIndex !== null) {
-      const newServices = [...settings.services];
-      newServices[editIndex] = updatedService;
+      const newCategories = [...settings.categories];
+      const categoryIndex = newCategories.findIndex((cat) =>
+        cat.services.some((_, index) => index === editIndex),
+      );
+      newCategories[categoryIndex].services[editIndex] = updatedService;
       setSettings((prevSettings) => ({
         ...prevSettings,
-        services: newServices,
+        categories: newCategories,
+      }));
+    } else {
+      const newCategories = [...settings.categories];
+      const categoryIndex = newCategories.findIndex(
+        (cat) => cat.name === selectedCategory,
+      );
+      newCategories[categoryIndex].services.push(updatedService);
+      setSettings((prevSettings) => ({
+        ...prevSettings,
+        categories: newCategories,
+      }));
+    }
+    setDialogType(null);
+    setEditIndex(null);
+  };
+
+  const handleCategorySave = (updatedCategory) => {
+    if (editIndex !== null) {
+      const newCategories = [...settings.categories];
+      newCategories[editIndex] = {
+        ...updatedCategory,
+        services: newCategories[editIndex].services,
+      };
+      setSettings((prevSettings) => ({
+        ...prevSettings,
+        categories: newCategories,
       }));
     } else {
       setSettings((prevSettings) => ({
         ...prevSettings,
-        services: [...prevSettings.services, updatedService],
+        categories: [
+          ...prevSettings.categories,
+          { ...updatedCategory, services: [] },
+        ],
       }));
     }
-    setDialogType(null); // Close the dialog
+    setDialogType(null);
     setEditIndex(null);
   };
 
   const handleCancelDialog = () => {
-    setDialogType(null); // Close the dialog
+    setDialogType(null);
     setSelectedService(null);
+    setSelectedCategory(null);
   };
 
-  const handleAddService = () => {
-    setDialogType("add");
+  const handleAddCategory = () => {
+    setDialogType("addCategory");
+    setSelectedCategory({
+      name: "",
+      description: "",
+    });
+  };
+
+  const handleAddService = (categoryName) => {
+    setDialogType("addService");
+    setSelectedCategory(categoryName);
     setSelectedService({
       name: "",
       description: "",
@@ -251,20 +358,38 @@ export function Settings({ user }) {
     });
   };
 
-  const handleEditService = (index) => {
-    setDialogType("edit");
-    setEditIndex(index);
-    setSelectedService(settings.services[index]);
+  const handleEditService = (categoryIndex, serviceIndex) => {
+    setDialogType("editService");
+    setEditIndex(serviceIndex);
+    setSelectedService(
+      settings.categories[categoryIndex].services[serviceIndex],
+    );
   };
 
-  const handleRemoveService = (index) => {
+  const handleEditCategory = (index) => {
+    setDialogType("editCategory");
+    setEditIndex(index);
+    setSelectedCategory(settings.categories[index]);
+  };
+
+  const handleRemoveService = (categoryIndex, serviceIndex) => {
+    const newCategories = [...settings.categories];
+    newCategories[categoryIndex].services = newCategories[
+      categoryIndex
+    ].services.filter((_, i) => i !== serviceIndex);
     setSettings((prevSettings) => ({
       ...prevSettings,
-      services: prevSettings.services.filter((_, i) => i !== index),
+      categories: newCategories,
     }));
   };
 
-  if (loading) return <SettingsSkeleton />;
+  const handleRemoveCategory = (index) => {
+    setSettings((prevSettings) => ({
+      ...prevSettings,
+      categories: prevSettings.categories.filter((_, i) => i !== index),
+    }));
+  };
+
   if (error) return <div>{error}</div>;
 
   return (
@@ -286,8 +411,8 @@ export function Settings({ user }) {
                         <GearIcon className="mr-2" />
                         <CardTitle className="text-2xl">Settings</CardTitle>
                       </div>
-                      <Button variant="secondary" onClick={handleAddService}>
-                        Add Service
+                      <Button variant="secondary" onClick={handleAddCategory}>
+                        Add Category
                       </Button>
                     </div>
                     <CardDescription>
@@ -296,44 +421,115 @@ export function Settings({ user }) {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {settings.services.map((service, index) => (
-                        <div key={index} className="flex items-center gap-4">
-                          <Card className="flex-grow p-1">
-                            <CardHeader>
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center">
-                                  <div>
-                                    <CardTitle>{service.name}</CardTitle>
-                                    <CardDescription>
-                                      {service.description}
-                                    </CardDescription>
-                                  </div>
-                                </div>
-                                <div className="flex gap-2">
-                                  <Button
-                                    variant="outline"
-                                    onClick={() => handleEditService(index)}
-                                  >
-                                    <GearIcon />
-                                  </Button>
-                                  <Button
-                                    variant="destructive"
-                                    onClick={() => handleRemoveService(index)}
-                                  >
-                                    <CrossCircledIcon />
-                                  </Button>
-                                </div>
+                      {settings.categories.map((category, categoryIndex) => (
+                        <Card key={categoryIndex} className="p-4">
+                          <CardHeader>
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <CardTitle>{category.name}</CardTitle>
+                                <CardDescription>
+                                  {category.description}
+                                </CardDescription>
                               </div>
-                            </CardHeader>
-                          </Card>
-                        </div>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  onClick={() =>
+                                    handleEditCategory(categoryIndex)
+                                  }
+                                >
+                                  <GearIcon />
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  onClick={() =>
+                                    handleRemoveCategory(categoryIndex)
+                                  }
+                                >
+                                  <CrossCircledIcon />
+                                </Button>
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            {category.services.map((service, serviceIndex) => (
+                              <div
+                                key={serviceIndex}
+                                className="flex items-center gap-4 mb-4"
+                              >
+                                <Card className="flex-grow p-1">
+                                  <CardHeader>
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center">
+                                        <div>
+                                          <CardTitle>{service.name}</CardTitle>
+                                          <CardDescription>
+                                            {service.description}
+                                          </CardDescription>
+                                        </div>
+                                      </div>
+                                      <div className="flex gap-2">
+                                        <Button
+                                          variant="outline"
+                                          onClick={() =>
+                                            handleEditService(
+                                              categoryIndex,
+                                              serviceIndex,
+                                            )
+                                          }
+                                        >
+                                          <GearIcon />
+                                        </Button>
+                                        <Button
+                                          variant="destructive"
+                                          onClick={() =>
+                                            handleRemoveService(
+                                              categoryIndex,
+                                              serviceIndex,
+                                            )
+                                          }
+                                        >
+                                          <CrossCircledIcon />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  </CardHeader>
+                                </Card>
+                              </div>
+                            ))}
+                            <Button
+                              variant="outline"
+                              onClick={() => handleAddService(category.name)}
+                              className="w-full"
+                            >
+                              <PlusIcon className="mr-2" /> Add Service
+                            </Button>
+                          </CardContent>
+                        </Card>
                       ))}
-                      {dialogType && (
+                      {dialogType === "addService" && (
                         <ServiceDialog
                           service={selectedService}
                           onClose={handleCancelDialog}
                           onSave={handleServiceSave}
-                          isNew={dialogType === "add"}
+                          isNew={true}
+                        />
+                      )}
+                      {dialogType === "editService" && (
+                        <ServiceDialog
+                          service={selectedService}
+                          onClose={handleCancelDialog}
+                          onSave={handleServiceSave}
+                          isNew={false}
+                        />
+                      )}
+                      {(dialogType === "addCategory" ||
+                        dialogType === "editCategory") && (
+                        <CategoryDialog
+                          category={selectedCategory}
+                          onClose={handleCancelDialog}
+                          onSave={handleCategorySave}
+                          isNew={dialogType === "addCategory"}
                         />
                       )}
                     </div>
@@ -394,24 +590,5 @@ export function Settings({ user }) {
         },
       ]}
     />
-  );
-}
-
-function SettingsSkeleton() {
-  return (
-    <div className="flex-grow overflow-auto">
-      <div className="flex-grow flex items-center justify-center">
-        <Card className="w-full max-w-4xl mx-auto p-4">
-          <CardHeader>
-            <CardTitle className="text-2xl">Settings</CardTitle>
-            <CardDescription>Loading...</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Skeleton className="h-40 w-full mb-4" />
-            <Skeleton className="h-40 w-full mb-4" />
-          </CardContent>
-        </Card>
-      </div>
-    </div>
   );
 }

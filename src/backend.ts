@@ -13,7 +13,6 @@ db.exec(`
     status TEXT CHECK(status IN ('online', 'maintenance', 'issues', 'offline')),
     timestamp INTEGER
   );
-
   CREATE TABLE IF NOT EXISTS incidents (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     description TEXT,
@@ -21,7 +20,6 @@ db.exec(`
     timestamp INTEGER,
     resolved_timestamp INTEGER
   );
-
   CREATE TABLE IF NOT EXISTS incident_services (
     incident_id INTEGER,
     service_id INTEGER,
@@ -29,10 +27,9 @@ db.exec(`
     FOREIGN KEY (service_id) REFERENCES services(id),
     PRIMARY KEY (incident_id, service_id)
   );
-
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE,
+    email TEXT UNIQUE,
     password TEXT,
     permLevel INTEGER
   );
@@ -60,11 +57,13 @@ async function checkService(service: ServiceConfig): Promise<string> {
 // Update service status in the database
 async function updateServiceStatus() {
   const timestamp = Date.now();
-  for (const service of config.services) {
-    const status = await checkService(service);
-    db.prepare(
-      "INSERT INTO services (url, status, timestamp) VALUES (?, ?, ?)",
-    ).run(service.url, status, timestamp);
+  for (const category of config.categories) {
+    for (const service of category.services) {
+      const status = await checkService(service);
+      db.prepare(
+        "INSERT INTO services (url, status, timestamp) VALUES (?, ?, ?)",
+      ).run(service.url, status, timestamp);
+    }
   }
 }
 
@@ -89,4 +88,5 @@ console.log(
     config.check_interval_minutes +
     " minutes.",
 );
+
 updateServiceStatus();
