@@ -11,6 +11,7 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     url TEXT,
     status TEXT CHECK(status IN ('online', 'maintenance', 'issues', 'offline')),
+    response_time INTEGER,
     timestamp INTEGER
   );
   CREATE TABLE IF NOT EXISTS incidents (
@@ -38,31 +39,50 @@ db.exec(`
 let config = await loadConfig();
 
 // Check service status
-async function checkService(service: ServiceConfig): Promise<string> {
-  try {
-    console.log("Checking " + service.url + "...");
-    const response = await fetch(service.url);
+async function checkService(
+  service: ServiceConfig,
+): Promise<{ status: string; responseTime: number }> {
+  const timeout = 7000; // Set the timeout in milliseconds
+
+  const startTime = Date.now();
+
+  const fetchPromise = fetch(service.url).then((response) => {
+    const endTime = Date.now();
+    const responseTime = endTime - startTime;
+
     if (response.status === service.expected_response_code) {
-      return "online";
+      return { status: "online", responseTime };
     } else if (response.status >= 500) {
-      return "offline";
+      return { status: "offline", responseTime };
     } else {
-      return "issues";
+      return { status: "issues", responseTime };
     }
+  });
+
+  const timeoutPromise = new Promise<never>((_, reject) =>
+    setTimeout(() => {
+      reject(new Error("Request timed out"));
+    }, timeout),
+  );
+
+  try {
+    const result = await Promise.race([fetchPromise, timeoutPromise]);
+    return result;
   } catch (error) {
-    return "offline";
+    return { status: "offline", responseTime: timeout };
   }
 }
 
 // Update service status in the database
 async function updateServiceStatus() {
+  config = await loadConfig();
   const timestamp = Date.now();
   for (const category of config.categories) {
     for (const service of category.services) {
-      const status = await checkService(service);
+      const { status, responseTime } = await checkService(service);
       db.prepare(
-        "INSERT INTO services (url, status, timestamp) VALUES (?, ?, ?)",
-      ).run(service.url, status, timestamp);
+        "INSERT INTO services (url, status, response_time, timestamp) VALUES (?, ?, ?, ?)",
+      ).run(service.url, status, responseTime, timestamp);
     }
   }
 }

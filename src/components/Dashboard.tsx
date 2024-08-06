@@ -76,7 +76,8 @@ const StatusIconMap = ({ status, size }) => {
 const StatusChart = ({ data }) => {
   return (
     <div className="flex h-8 w-full">
-      {data.map((status, index) => {
+      {data.map((entry, index) => {
+        const { status, response_time } = entry;
         const isFirst = index === 0;
         const isLast = index === data.length - 1;
 
@@ -87,7 +88,6 @@ const StatusChart = ({ data }) => {
 
         return (
           <HoverCard key={`status-${status}-${index}`}>
-            {/* Updated key */}
             <HoverCardTrigger asChild>
               <div
                 className={`flex-grow ${getStatusColor(status, false)} mx-px cursor-pointer ${borderRadiusClasses} group relative`}
@@ -95,7 +95,7 @@ const StatusChart = ({ data }) => {
                 <div className="absolute inset-0 border-2 border-transparent group-hover:border-muted pointer-events-none" />
               </div>
             </HoverCardTrigger>
-            <HoverCardContent className="w-64">
+            <HoverCardContent className="w-64 cursor-default">
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
                   <h4 className="text-sm font-semibold capitalize">
@@ -104,11 +104,17 @@ const StatusChart = ({ data }) => {
                   <StatusIconMap status={status} size="1rem" />
                 </div>
                 {status && (
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(
-                      Date.now() - (29 - index) * 48 * 60 * 1000,
-                    ).toLocaleString()}
-                  </p>
+                  <>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(
+                        Date.now() - (data.length - 1 - index) * 60 * 60 * 1000,
+                      ).toLocaleString()}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Response Time:{" "}
+                      {response_time !== null ? `${response_time} ms` : "N/A"}
+                    </p>
+                  </>
                 )}
               </div>
             </HoverCardContent>
@@ -155,7 +161,7 @@ export function Dashboard({ user }) {
           label: "Status",
           content: (
             <div className="flex-grow p-4 overflow-auto max-w-7xl mx-auto w-full">
-              <section className="text-center my-12">
+              <section className="text-center my-12 cursor-default">
                 {statusData.overallStatus === "online" ? (
                   <div className="flex flex-col items-center">
                     <StatusIconMap
@@ -235,7 +241,7 @@ export function Dashboard({ user }) {
                                   </Button>
                                 )}
                               </HoverCardTrigger>
-                              <HoverCardContent className="w-80">
+                              <HoverCardContent className="w-80 cursor-default">
                                 <div className="flex justify-between space-x-4">
                                   <div className="space-y-1">
                                     <h4 className="text-sm font-semibold">

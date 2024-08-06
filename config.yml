@@ -2,16 +2,24 @@ categories:
   - name: Web Services
     description: Main web-facing services for Tornado Emergency
     services:
-      - &ref_0
-        name: TM API Services
+      - name: TM Website
+        description: The website Tornado Emergency.
+        url: https://tornadoemergency.net
+        hide_url: false
+        expected_response_code: 200
+  - name: API Stuff
+    description: API Backend stuff
+    services:
+      - name: TM API Services
         description: The API for Tornado Emergency.
         url: https://timmygstudios.com
         hide_url: true
         expected_response_code: 200
-  - name: Test
-    description: Test category
-    services:
-      - *ref_0
+      - name: Almix API Services
+        description: The worst API in the world
+        url: https://meifmndfaw.com
+        hide_url: true
+        expected_response_code: 200
 data_retention_hours: '24'
 check_interval_minutes: '15'
 mail:

@@ -19,7 +19,7 @@ export const GET: APIRoute = async ({ url }) => {
     const services = db
       .prepare(
         `
-      SELECT url, status, MAX(timestamp) as latest_timestamp
+      SELECT url, status, response_time, MAX(timestamp) as latest_timestamp
       FROM services
       WHERE timestamp >= ?
       GROUP BY url
@@ -34,7 +34,12 @@ export const GET: APIRoute = async ({ url }) => {
       const service = services.find((s) => s.url === configService.url);
       return service
         ? service
-        : { url: configService.url, status: null, latest_timestamp: null };
+        : {
+            url: configService.url,
+            status: null,
+            latest_timestamp: null,
+            response_time: null,
+          };
     });
 
     const overallStatus = validServices.every((s) => s.status === "online")
@@ -47,7 +52,7 @@ export const GET: APIRoute = async ({ url }) => {
       const statusData = db
         .prepare(
           `
-        SELECT status, timestamp
+        SELECT status, timestamp, response_time
         FROM services
         WHERE url = ? AND timestamp >= ?
         ORDER BY timestamp DESC
@@ -62,13 +67,18 @@ export const GET: APIRoute = async ({ url }) => {
         const matchingStatus = statusData.find(
           (s) => s.timestamp <= currentTimestamp,
         );
-        return matchingStatus ? matchingStatus.status : null;
+        return matchingStatus
+          ? {
+              status: matchingStatus.status,
+              response_time: matchingStatus.response_time,
+            }
+          : { status: null, response_time: null };
       });
 
       hourlyStatus[service.url] = statuses;
 
       const onlineCount = statuses.filter(
-        (status) => status === "online",
+        (status) => status.status === "online",
       ).length;
       uptimePercentages[service.url] = (onlineCount / intervals) * 100;
     });
@@ -90,6 +100,7 @@ export const GET: APIRoute = async ({ url }) => {
           expected_response_code: configService.expected_response_code,
           latest_timestamp: service ? service.latest_timestamp : null,
           status: service ? service.status : "offline",
+          response_time: service ? service.response_time : null, // Include response_time
           hourly_status: hourlyStatus[configService.url],
           uptime_percentage:
             uptimePercentages[configService.url].toFixed(2) + "%",

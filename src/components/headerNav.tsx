@@ -1,10 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import {
-  CheckCircledIcon,
-  GearIcon,
-  ChevronRightIcon,
-} from "@radix-ui/react-icons";
+import { CheckCircledIcon, GearIcon, Share1Icon } from "@radix-ui/react-icons";
 import { ThemeToggle } from "@/components/themeToggle";
 
 export function HeaderNav({
@@ -51,8 +47,8 @@ export function HeaderNav({
               )}
               {showUpdates && (
                 <Button variant="secondary" className="flex items-center">
-                  Get Updates (WIP)
-                  <ChevronRightIcon className="ml-2 h-4 w-4" />
+                  Get Updates
+                  <Share1Icon className="ml-2 h-4 w-4" />
                 </Button>
               )}
             </div>
