@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+
 //import { toast } from "sonner"; BROKEN BY VIEW TRANSITIONS
 import {
   Dialog,
@@ -285,10 +287,14 @@ export function Settings({ user }) {
   const handleServiceSave = (updatedService) => {
     if (editIndex !== null) {
       const newCategories = [...settings.categories];
-      const categoryIndex = newCategories.findIndex((cat) =>
-        cat.services.some((_, index) => index === editIndex),
+      const categoryIndex = newCategories.findIndex(
+        (cat) => cat.name === selectedCategory,
       );
+
       newCategories[categoryIndex].services[editIndex] = updatedService;
+      console.log(
+        "Got category index of " + categoryIndex + " when trying to save",
+      );
       setSettings((prevSettings) => ({
         ...prevSettings,
         categories: newCategories,
@@ -364,6 +370,7 @@ export function Settings({ user }) {
     setSelectedService(
       settings.categories[categoryIndex].services[serviceIndex],
     );
+    setSelectedCategory(settings.categories[categoryIndex].name);
   };
 
   const handleEditCategory = (index) => {
@@ -399,8 +406,8 @@ export function Settings({ user }) {
       showUpdates={false}
       tabs={[
         {
-          value: "status",
-          label: "Status",
+          value: "services",
+          label: "Services",
           content: (
             <div className="flex-grow overflow-auto">
               <div className="flex-grow flex items-center justify-center">
@@ -409,14 +416,14 @@ export function Settings({ user }) {
                     <div className="flex justify-between items-center">
                       <div className="flex items-center">
                         <GearIcon className="mr-2" />
-                        <CardTitle className="text-2xl">Settings</CardTitle>
+                        <CardTitle className="text-2xl">Services</CardTitle>
                       </div>
                       <Button variant="secondary" onClick={handleAddCategory}>
                         Add Category
                       </Button>
                     </div>
                     <CardDescription>
-                      Manage your application settings here.
+                      Manage your service related settings here.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -582,6 +589,62 @@ export function Settings({ user }) {
                         }
                       />
                     </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          ),
+        },
+        {
+          value: "mail",
+          label: "Mail",
+          content: (
+            <div className="flex-grow overflow-auto">
+              <div className="flex-grow flex items-center justify-center">
+                <Card className="w-full max-w-4xl mx-auto p-4 my-10">
+                  <CardHeader>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center">
+                        <GearIcon className="mr-2" />
+                        <CardTitle className="text-2xl">Mail</CardTitle>
+                      </div>
+                      <Switch />
+                    </div>
+                    <CardDescription>
+                      Manage your mail related settings here.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4"></div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          ),
+        },
+        {
+          value: "users",
+          label: "Users",
+          content: (
+            <div className="flex-grow overflow-auto">
+              <div className="flex-grow flex items-center justify-center">
+                <Card className="w-full max-w-4xl mx-auto p-4 my-10">
+                  <CardHeader>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center">
+                        <GearIcon className="mr-2" />
+                        <CardTitle className="text-2xl">Users</CardTitle>
+                      </div>
+                      <Button variant="secondary" onClick={{}}>
+                        Add User
+                      </Button>
+                    </div>
+                    <CardDescription>
+                      Manage and add your users here.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4"></div>
                   </CardContent>
                 </Card>
               </div>
