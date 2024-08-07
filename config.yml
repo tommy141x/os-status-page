@@ -30,5 +30,5 @@ mail:
     username: ''
     password: ''
   send_from: ''
-  enabled: false
+  enabled: true
 secret: supersecretkey

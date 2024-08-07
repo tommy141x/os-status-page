@@ -28,6 +28,11 @@ db.exec(`
     password TEXT,
     permLevel INTEGER
   );
+  CREATE TABLE IF NOT EXISTS subscriptions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT UNIQUE,
+      subscription_date INTEGER
+  );
 `);
 
 let config = await loadConfig();
