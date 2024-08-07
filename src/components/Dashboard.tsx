@@ -148,7 +148,7 @@ export function Dashboard({ user }) {
     fetchData();
   }, []);
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <div className="bg-background">Loading...</div>;
   if (error) return <div>Error: {error}</div>;
   if (!statusData) return <div>No data available</div>;
 
