@@ -16,6 +16,7 @@ db.exec(`
   );
   CREATE TABLE IF NOT EXISTS incidents (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT,
     description TEXT,
     type TEXT CHECK(type IN ('incident', 'maintenance')),
     services TEXT,

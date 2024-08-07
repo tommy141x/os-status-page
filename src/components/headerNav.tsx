@@ -98,7 +98,6 @@ export function HeaderNav({
       }
 
       const data = await response.json();
-      console.log("Subscription check response data:", data);
 
       if (data.error) {
         console.error("Error:", data.error);
@@ -106,13 +105,6 @@ export function HeaderNav({
       }
 
       setSubscriptionStatus({
-        subscribed: data.subscribed,
-        subscription_date: data.subscribed
-          ? new Date(data.subscription_date).toLocaleDateString()
-          : null,
-      });
-
-      console.log("Updated subscription status:", {
         subscribed: data.subscribed,
         subscription_date: data.subscribed
           ? new Date(data.subscription_date).toLocaleDateString()
@@ -134,7 +126,7 @@ export function HeaderNav({
           <DialogHeader>
             <DialogTitle>Subscribe for Updates</DialogTitle>
             <DialogDescription>
-              Enter your email to subscribe or unsubscribe from updates.
+              Enter your email to subscribe to status updates.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -152,15 +144,12 @@ export function HeaderNav({
             {subscriptionStatus && (
               <div className="grid grid-cols-4 items-center gap-4">
                 <div className="col-span-4 text-center">
-                  {subscriptionStatus.subscribed ? (
+                  {subscriptionStatus.subscribed && (
                     <>
-                      <p className="text-green-600">Subscribed</p>
-                      <p className="text-sm">
+                      <p className="text-muted-foreground">
                         Subscribed on: {subscriptionStatus.subscription_date}
                       </p>
                     </>
-                  ) : (
-                    <p className="text-red-600">Not subscribed</p>
                   )}
                 </div>
               </div>

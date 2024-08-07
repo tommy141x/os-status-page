@@ -65,7 +65,7 @@ export function Dashboard({ user }) {
         {
           value: "incidents",
           label: "Incidents",
-          content: <Incidents incidentsData={incidentsData} />,
+          content: <Incidents incidentsData={incidentsData} user={user} />,
         },
       ]}
     />

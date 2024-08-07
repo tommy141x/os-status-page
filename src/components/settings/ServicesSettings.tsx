@@ -72,7 +72,7 @@ function InputField({ label, id, name, value, onChange, type = "text" }) {
         value={value}
         onChange={onChange}
         type={type}
-        className="w-full"
+        className="w-full mb-2"
       />
     </div>
   );
@@ -441,7 +441,6 @@ export function ServicesSettings({ settings, setSettings }) {
               )}
             </div>
             <Separator className="my-4" />
-            <CardDescription>Other Application Settings</CardDescription>
             <div>
               <InputField
                 label="Data Retention Hours"

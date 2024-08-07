@@ -1,6 +1,5 @@
 import type { APIRoute } from "astro";
 import { Database } from "bun:sqlite";
-import { loadConfig } from "@/lib/server-utils";
 
 const db = new Database("statusdb.sqlite");
 
@@ -12,17 +11,25 @@ async function getIncidents() {
 
 // Helper function to create or update an incident
 async function createOrUpdateIncident(incident: any) {
-  const { id, description, type, services, timestamp, resolved_timestamp } =
-    incident;
+  const {
+    id,
+    title,
+    description,
+    type,
+    services,
+    timestamp,
+    resolved_timestamp,
+  } = incident;
 
   if (id) {
     // Update existing incident
     const updateStmt = db.prepare(`
       UPDATE incidents
-      SET description = ?, type = ?, services = ?, timestamp = ?, resolved_timestamp = ?
+      SET title = ?, description = ?, type = ?, services = ?, timestamp = ?, resolved_timestamp = ?
       WHERE id = ?
     `);
     updateStmt.run(
+      title,
       description,
       type,
       services,
@@ -33,14 +40,27 @@ async function createOrUpdateIncident(incident: any) {
   } else {
     // Create new incident
     const insertStmt = db.prepare(`
-      INSERT INTO incidents (description, type, services, timestamp, resolved_timestamp)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO incidents (title, description, type, services, timestamp, resolved_timestamp)
+      VALUES (?, ?, ?, ?, ?, ?)
     `);
-    insertStmt.run(description, type, services, timestamp, resolved_timestamp);
+    insertStmt.run(
+      title,
+      description,
+      type,
+      services,
+      timestamp,
+      resolved_timestamp,
+    );
   }
 }
 
-export const GET: APIRoute = async ({ url }) => {
+// Helper function to delete an incident
+async function deleteIncident(id: number) {
+  const deleteStmt = db.prepare("DELETE FROM incidents WHERE id = ?");
+  deleteStmt.run(id);
+}
+
+export const GET: APIRoute = async () => {
   try {
     const incidents = await getIncidents();
     return new Response(JSON.stringify(incidents), { status: 200 });
@@ -54,12 +74,33 @@ export const GET: APIRoute = async ({ url }) => {
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const incident = await request.json();
-    await createOrUpdateIncident(incident);
+    const data = await request.json();
+
+    await createOrUpdateIncident(data);
+
+    return new Response(JSON.stringify({ success: true }), { status: 200 });
+  } catch (error) {
+    console.error("Failed to save incident:", error); // Log the detailed error
+    return new Response(JSON.stringify({ error: "Failed to save incident" }), {
+      status: 500,
+    });
+  }
+};
+
+export const DELETE: APIRoute = async ({ request }) => {
+  try {
+    const { id } = await request.json();
+    if (!id || isNaN(id)) {
+      return new Response(JSON.stringify({ error: "Invalid ID" }), {
+        status: 400,
+      });
+    }
+
+    await deleteIncident(id);
     return new Response(JSON.stringify({ success: true }), { status: 200 });
   } catch (error) {
     return new Response(
-      JSON.stringify({ error: "Failed to create or update incident" }),
+      JSON.stringify({ error: "Failed to delete incident" }),
       { status: 500 },
     );
   }
