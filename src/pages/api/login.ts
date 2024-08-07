@@ -40,7 +40,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // Verify the password
-    const isPasswordValid = await Bun.password.compare(password, user.password);
+    const isPasswordValid = await Bun.password.verify(password, user.password);
     if (!isPasswordValid) {
       return new Response("Invalid email or password", { status: 401 });
     }

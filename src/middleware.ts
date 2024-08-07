@@ -60,16 +60,18 @@ const middleware: MiddlewareResponseHandler = async (context, next) => {
     }
   }
 
-  if (currentPath === "/settings" && !context.locals.user?.permLevel == 0) {
+  if (currentPath === "/settings" && !(context.locals.user?.permLevel === 0)) {
     db.close();
     return Response.redirect(new URL("/", context.url), 302);
   }
 
   if (
     currentPath.startsWith("/api") &&
+    method !== "GET" &&
     !context.locals.user &&
     !isEmpty &&
-    currentPath.endsWith("/status") === false
+    currentPath.endsWith("/status") === false &&
+    currentPath.endsWith("/login") === false
   ) {
     db.close();
     return new Response("Unauthorized", { status: 401 });

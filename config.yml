@@ -15,14 +15,14 @@ categories:
         url: https://timmygstudios.com
         hide_url: true
         expected_response_code: 200
-      - name: Almix API Services
-        description: The worst API in the world
-        url: https://meifmndfaw.com
-        hide_url: true
+      - name: AWS
+        description: Test
+        url: https://health.us-east-1.amazonaws.com/
+        hide_url: false
         expected_response_code: 200
 data_retention_hours: '24'
 check_interval_minutes: '15'
-name: Status
+name: OS Status
 mail:
   smtp:
     host: smtp.gmail.com
