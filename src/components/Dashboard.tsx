@@ -63,8 +63,8 @@ export function Dashboard({ user }) {
           content: <Services statusData={statusData} />,
         },
         {
-          value: "incidentsData",
-          label: "IncidentsData",
+          value: "incidents",
+          label: "Incidents",
           content: <Incidents incidentsData={incidentsData} />,
         },
       ]}
