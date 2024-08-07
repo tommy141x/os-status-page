@@ -13,11 +13,9 @@ const middleware: MiddlewareResponseHandler = async (context, next) => {
   const results = setupCheck.all();
   const isEmpty = results[0].count === 0;
 
-  // Get the current page URL and method
   const currentPath = context.url.pathname;
   const method = context.request.method;
 
-  // Send user to setup page if no users are in the database
   if (isEmpty && method === "GET" && currentPath !== "/setup") {
     db.close();
     return Response.redirect(new URL("/setup", context.url), 302);
@@ -26,7 +24,6 @@ const middleware: MiddlewareResponseHandler = async (context, next) => {
     return Response.redirect(new URL("/", context.url), 302);
   }
 
-  // Check if user is logged in via session cookie token and pass their user data to the context
   const cookies = context.request.headers.get("cookie");
   let token;
 
@@ -39,18 +36,15 @@ const middleware: MiddlewareResponseHandler = async (context, next) => {
 
   if (token) {
     try {
-      // Verify the token
       const decoded = jwt.verify(token, JWT_SECRET);
       const email = decoded.email;
 
-      // Fetch user data from the database
       const userStmt = db.prepare(
         "SELECT email, permLevel FROM users WHERE email = ?",
       );
       const userData = userStmt.get(email);
 
       if (userData) {
-        // Attach user data to the context
         if (currentPath === "/login") {
           db.close();
           return Response.redirect(new URL("/", context.url), 302);
@@ -63,16 +57,14 @@ const middleware: MiddlewareResponseHandler = async (context, next) => {
       }
     } catch (error) {
       console.error("Error verifying token:", error);
-      // Handle token verification errors if necessary
     }
   }
 
-  if (currentPath === "/settings" && !context.locals.user.permLevel == 0) {
+  if (currentPath === "/settings" && !context.locals.user?.permLevel == 0) {
     db.close();
     return Response.redirect(new URL("/", context.url), 302);
   }
 
-  // return 401 if user is not logged in and trying to access a protected route such as /api
   if (
     currentPath.startsWith("/api") &&
     !context.locals.user &&

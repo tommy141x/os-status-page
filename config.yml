@@ -22,12 +22,13 @@ categories:
         expected_response_code: 200
 data_retention_hours: '24'
 check_interval_minutes: '15'
+name: Status
 mail:
   smtp:
     host: smtp.gmail.com
     port: '587'
-    username: null
-    password: null
-  send_from: null
+    username: ''
+    password: ''
+  send_from: ''
   enabled: false
 secret: supersecretkey

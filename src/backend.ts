@@ -17,16 +17,10 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS incidents (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     description TEXT,
-    type TEXT,
+    type TEXT CHECK(type IN ('incident', 'maintenance')),
+    services TEXT,
     timestamp INTEGER,
     resolved_timestamp INTEGER
-  );
-  CREATE TABLE IF NOT EXISTS incident_services (
-    incident_id INTEGER,
-    service_id INTEGER,
-    FOREIGN KEY (incident_id) REFERENCES incidents(id),
-    FOREIGN KEY (service_id) REFERENCES services(id),
-    PRIMARY KEY (incident_id, service_id)
   );
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
