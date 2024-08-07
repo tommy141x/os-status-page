@@ -130,8 +130,12 @@ export function Dashboard({ user }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [incidents, setIncidents] = useState([]);
+  const [incidentsLoading, setIncidentsLoading] = useState(true);
+  const [incidentsError, setIncidentsError] = useState(null);
+
   useEffect(() => {
-    async function fetchData() {
+    async function fetchStatusData() {
       try {
         const response = await fetch("/api/status");
         if (!response.ok) {
@@ -145,7 +149,23 @@ export function Dashboard({ user }) {
         setIsLoading(false);
       }
     }
-    fetchData();
+    fetchStatusData();
+
+    async function fetchIncidents() {
+      try {
+        const response = await fetch("/api/incidents");
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setIncidents(data);
+      } catch (e) {
+        setIncidentsError(e.message);
+      } finally {
+        setIncidentsLoading(false);
+      }
+    }
+    fetchIncidents();
   }, []);
 
   if (isLoading) return <div className="bg-background">Loading...</div>;
@@ -302,7 +322,33 @@ export function Dashboard({ user }) {
                 <h1 className="text-4xl font-bold mb-4 text-primary">
                   Latest Incidents
                 </h1>
-                <p className="text-lg mb-6 text-foreground">hi</p>
+                {incidentsLoading ? (
+                  <p className="text-lg mb-6 text-foreground">Loading...</p>
+                ) : incidentsError ? (
+                  <p className="text-lg mb-6 text-red-500">
+                    Error: {incidentsError}
+                  </p>
+                ) : incidents.length === 0 ? (
+                  <p className="text-lg mb-6 text-foreground">
+                    No incidents found.
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {incidents.map((incident) => (
+                      <Card key={incident.id} className="bg-secondary mb-4">
+                        <CardHeader>
+                          <CardTitle>{incident.title}</CardTitle>
+                          <CardDescription>
+                            {new Date(incident.timestamp).toLocaleString()}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <p>{incident.description}</p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </section>
             </div>
           ),
