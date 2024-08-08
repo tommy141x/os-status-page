@@ -36,6 +36,7 @@ db.exec(`
 
 let config = await loadConfig();
 let lastConfig = JSON.stringify(config);
+let updateInterval;
 
 // Check service status
 async function checkService(
@@ -102,23 +103,29 @@ function configHasChanged(currentConfig: any): boolean {
 }
 
 // Periodically check for config changes every 15 seconds
-setInterval(async () => {
+async function checkConfigChanges() {
   try {
     const currentConfig = await loadConfig(); // Fetch the latest config
     if (configHasChanged(currentConfig)) {
-      console.log("Configuration changed. Updating status...");
+      console.log(
+        "Configuration changed. Updating status and resetting update interval...",
+      );
       await updateServiceStatus();
+      clearInterval(updateInterval);
+      scheduleUpdates();
       console.log("Status updated due to config change.");
     }
   } catch (error) {
     console.error("Error checking configuration:", error);
   }
-}, 15000); // Check every 15 seconds
+}
+
+setInterval(checkConfigChanges, 15000); // Check every 15 seconds
 
 // Periodically update service status and remove old data based on config check interval
 async function scheduleUpdates() {
   const checkInterval = config.check_interval_minutes * 60 * 1000;
-  setInterval(async () => {
+  updateInterval = setInterval(async () => {
     try {
       await updateServiceStatus();
       removeOldData();

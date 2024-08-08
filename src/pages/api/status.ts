@@ -5,27 +5,21 @@ import { loadConfig } from "@/lib/server-utils";
 export const GET: APIRoute = async ({ url }) => {
   const db = new Database("statusdb.sqlite");
   const config = await loadConfig();
-
   const checkIntervalMinutes = config.check_interval_minutes || 15;
   const hoursBack = config.data_retention_hours || 24;
-
   const totalMinutes = hoursBack * 60;
   const intervals = Math.floor(totalMinutes / checkIntervalMinutes);
   const intervalDurationMs = checkIntervalMinutes * 60 * 1000;
 
   try {
-    const earliestTimestamp = Date.now() - hoursBack * 60 * 60 * 1000;
-
     const services = db
       .prepare(
         `
-      SELECT url, status, response_time, MAX(timestamp) as latest_timestamp
+      SELECT url, status, response_time, timestamp
       FROM services
-      WHERE timestamp >= ?
-      GROUP BY url
     `,
       )
-      .all(earliestTimestamp);
+      .all();
 
     const allConfiguredServices = config.categories.flatMap(
       (category) => category.services,
@@ -37,7 +31,7 @@ export const GET: APIRoute = async ({ url }) => {
         : {
             url: configService.url,
             status: null,
-            latest_timestamp: null,
+            timestamp: null,
             response_time: null,
           };
     });
@@ -45,68 +39,58 @@ export const GET: APIRoute = async ({ url }) => {
     const overallStatus = validServices.every((s) => s.status === "online")
       ? "online"
       : "issues";
-
-    const hourlyStatus = {};
+    const statusData = {};
     const uptimePercentages = {};
+    const timeRanges = {};
+
     validServices.forEach((service) => {
-      const statusData = db
-        .prepare(
-          `
-        SELECT status, timestamp, response_time
-        FROM services
-        WHERE url = ? AND timestamp >= ?
-        ORDER BY timestamp DESC
-        LIMIT ?
-      `,
-        )
-        .all(service.url, earliestTimestamp, intervals);
+      const serviceStatusData = services
+        .filter((s) => s.url === service.url)
+        .map((s) => ({
+          status: s.status,
+          response_time: s.response_time,
+          timestamp: s.timestamp,
+        }));
+      statusData[service.url] = serviceStatusData;
 
-      const statuses = new Array(intervals).fill(null).map((_, i) => {
-        const currentTimestamp =
-          Date.now() - (intervals - 1 - i) * intervalDurationMs;
-        const matchingStatus = statusData.find(
-          (s) => s.timestamp <= currentTimestamp,
-        );
-        return matchingStatus
-          ? {
-              status: matchingStatus.status,
-              response_time: matchingStatus.response_time,
-            }
-          : { status: null, response_time: null };
-      });
-
-      hourlyStatus[service.url] = statuses;
-
-      const onlineCount = statuses.filter(
+      const onlineCount = serviceStatusData.filter(
         (status) => status.status === "online",
       ).length;
-      uptimePercentages[service.url] = (onlineCount / intervals) * 100;
-    });
+      uptimePercentages[service.url] =
+        (onlineCount / serviceStatusData.length) * 100;
 
-    const timeRange =
-      hoursBack <= 24
-        ? `${hoursBack} hours`
-        : `${Math.round(hoursBack / 24)} days`;
+      const earliestTimestamp = Math.min(
+        ...serviceStatusData.map((s) => s.timestamp),
+      );
+      const hoursBackForService = Math.max(
+        1,
+        Math.round((Date.now() - earliestTimestamp) / (60 * 60 * 1000)),
+      );
+      timeRanges[service.url] =
+        hoursBackForService <= 24
+          ? `${hoursBackForService} hours`
+          : `${Math.round(hoursBackForService / 24)} days`;
+    });
 
     const categoriesWithServices = config.categories.map((category) => {
       const servicesInCategory = category.services.map((configService) => {
+        const serviceData = statusData[configService.url];
         const service = validServices.find((s) => s.url === configService.url);
-
         return {
           name: configService.name,
           description: configService.description,
           url: configService.url,
           hide_url: configService.hide_url,
           expected_response_code: configService.expected_response_code,
-          latest_timestamp: service ? service.latest_timestamp : null,
+          latest_timestamp: service ? service.timestamp : null,
           status: service ? service.status : "offline",
-          response_time: service ? service.response_time : null, // Include response_time
-          hourly_status: hourlyStatus[configService.url],
+          response_time: service ? service.response_time : null,
+          status_data: serviceData,
           uptime_percentage:
             uptimePercentages[configService.url].toFixed(2) + "%",
+          timeRange: timeRanges[configService.url],
         };
       });
-
       return {
         name: category.name,
         description: category.description,
@@ -119,7 +103,6 @@ export const GET: APIRoute = async ({ url }) => {
         categories: categoriesWithServices,
         overallStatus,
         lastUpdate: Date.now(),
-        timeRange,
       }),
       {
         status: 200,

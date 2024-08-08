@@ -92,7 +92,7 @@ const StatusChart = ({ data }) => {
   return (
     <div className="flex h-8 w-full">
       {data.map((entry, index) => {
-        const { status, response_time } = entry;
+        const { status, response_time, timestamp } = entry;
         const isFirst = index === 0;
         const isLast = index === data.length - 1;
 
@@ -121,9 +121,7 @@ const StatusChart = ({ data }) => {
                 {status && (
                   <>
                     <p className="text-xs text-muted-foreground">
-                      {formatter.format(
-                        Date.now() - (data.length - 1 - index) * 60 * 60 * 1000,
-                      )}
+                      {formatter.format(timestamp)}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       Response Time:{" "}
@@ -210,7 +208,7 @@ export const Services = memo(({ statusData, incidentsData }) => {
   const allDates = new Set();
   statusData.categories.forEach((category) => {
     category.services.forEach((service) => {
-      service.hourly_status.forEach((entry, index) => {
+      service.status_data.forEach((entry, index) => {
         if (entry.response_time !== null) {
           allDates.add(`2024-01-0${index + 1}`);
         }
@@ -261,10 +259,10 @@ export const Services = memo(({ statusData, incidentsData }) => {
     const dataPoint = { date };
     statusData.categories.forEach((category) => {
       category.services.forEach((service) => {
-        const entry = service.hourly_status.find(
+        const entry = service.status_data.find(
           (e) =>
             e.response_time !== null &&
-            date === `2024-01-0${service.hourly_status.indexOf(e) + 1}`,
+            date === `2024-01-0${service.status_data.indexOf(e) + 1}`,
         );
         if (entry) {
           dataPoint[service.name] = entry.response_time;
@@ -385,11 +383,11 @@ export const Services = memo(({ statusData, incidentsData }) => {
                     </h2>
                   </div>
                   <StatusChart
-                    data={service.hourly_status || new Array(30).fill(null)}
+                    data={service.status_data || new Array(30).fill(null)}
                   />
                   <div className="flex justify-between items-center p-1">
                     <h2 className="text-sm text-muted-foreground mt-2">
-                      {statusData.timeRange} ago
+                      {service.timeRange} ago
                     </h2>
                     <h2 className="text-sm text-muted-foreground mt-2">Now</h2>
                   </div>

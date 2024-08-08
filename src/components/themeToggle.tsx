@@ -1,4 +1,3 @@
-// src/components/ThemeToggle.tsx
 import "@theme-toggles/react/css/Expand.css";
 import { Expand } from "@theme-toggles/react";
 import { useState, useEffect } from "react";
@@ -6,14 +5,23 @@ import { useState, useEffect } from "react";
 export function ThemeToggle() {
   const [isToggled, setToggle] = useState(false);
 
-  // Load theme from local storage on component mount
   useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") === "dark";
-    setToggle(savedTheme);
-    document.documentElement.classList.toggle("dark", savedTheme);
+    const savedTheme = localStorage.getItem("theme");
+
+    if (savedTheme) {
+      const isDark = savedTheme === "dark";
+      setToggle(isDark);
+      document.documentElement.classList.toggle("dark", isDark);
+    } else {
+      // Detect user's system preference if no theme is saved
+      const prefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)",
+      ).matches;
+      setToggle(prefersDark);
+      document.documentElement.classList.toggle("dark", prefersDark);
+    }
   }, []);
 
-  // Save theme to local storage and apply it to the document
   useEffect(() => {
     localStorage.setItem("theme", isToggled ? "dark" : "light");
     document.documentElement.classList.toggle("dark", isToggled);
