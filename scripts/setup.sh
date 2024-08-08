@@ -202,7 +202,7 @@ start_with_docker() {
   local temp_output_file=$(mktemp)
 
   # Start the application with Docker
-  docker compose up > "$temp_output_file" 2>&1
+  docker compose up > "$temp_output_file" 2>&1 &
   local docker_pid=$!
 
   # Save the Docker PID to the lock file
@@ -237,31 +237,32 @@ start_with_docker() {
   cd ..
 }
 
+
 stop_process() {
   clear
   echo "Stopping..."
 
   if command -v docker &> /dev/null; then
     # Docker is installed
-    if [ "$(docker ps -q)" ]; then
+    cd "$folder_name" || { echo "Failed to change directory to $folder_name"; exit 1; }
       docker compose down
-    fi
+      cd ..
   else
     # Docker is not installed
     echo "Docker not found, skipping Docker stop..."
   fi
 
   # Check if lock file exists
-  if [ -f "./$folder_name/$LOCK_FILE" ]; then
+  if [ -f "$folder_name/$LOCK_FILE" ]; then
     # Read PID from lock file
-    PROCESS_PID=$(cat "./$folder_name/$LOCK_FILE")
-    if [ -n "$PROCESS_PID" ]; then
-      if ps -p $PROCESS_PID > /dev/null; then
-        kill $PROCESS_PID
-        rm "./$folder_name/$LOCK_FILE"  # Remove the lock file after stopping the process
+    local process_pid=$(cat "$folder_name/$LOCK_FILE")
+    if [ -n "$process_pid" ]; then
+      if ps -p $process_pid > /dev/null; then
+        kill $process_pid
+        rm "$folder_name/$LOCK_FILE"  # Remove the lock file after stopping the process
       else
-        echo "Process with PID $PROCESS_PID not found. Removing stale lock file."
-        rm "./$folder_name/$LOCK_FILE"
+        echo "Process with PID $process_pid not found. Removing stale lock file."
+        rm "$folder_name/$LOCK_FILE"
       fi
     else
       echo "No PID found in the lock file."
