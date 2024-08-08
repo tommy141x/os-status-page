@@ -87,6 +87,7 @@ upgrade_process() {
   # Backup configuration and database
   [ -f "$folder_name/config.yml" ] && mv "$folder_name/config.yml" "config.yml.bak"
   [ -f "$folder_name/statusdb.sqlite" ] && mv "$folder_name/statusdb.sqlite" "statusdb.sqlite.bak"
+  [ -f "$folder_name/docker-compose.yml" ] && mv "$folder_name/docker-compose.yml" "docker-compose.yml.bak"
 
   # Remove the old application folder
   rm -rf "$folder_name"
@@ -95,7 +96,8 @@ upgrade_process() {
   download_latest_release
 
   # Restore the configuration and database
-  [ -f "config.yml.bak" ] && mv "config.yml.bak" "$folder_name/config.yml"
+  [ -f "config.yml.bak" ] && mv "config.yml.bak" "$folder_name/config.yml.old"
+  [ -f "docker-compose.yml.bak" ] && mv "docker-compose.yml.bak" "$folder_name/docker-compose.yml.old"
   [ -f "statusdb.sqlite.bak" ] && mv "statusdb.sqlite.bak" "$folder_name/statusdb.sqlite"
 
   # Change directory to the extracted folder
@@ -105,7 +107,7 @@ upgrade_process() {
 
   # Print completion message
   echo "Upgrade complete!"
-  echo "Please check your config.yml against config.example.yml for new options and review the release notes for any breaking changes."
+  echo "Please check update your config file if necessary. Old config file is saved as config.yml.old"
   cd ..
 }
 
