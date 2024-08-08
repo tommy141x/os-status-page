@@ -2,6 +2,7 @@ import type { APIRoute } from "astro";
 import { Database } from "bun:sqlite";
 import { loadConfig } from "@/lib/server-utils";
 import { writeFile, readFile } from "fs/promises";
+import path from "path";
 import * as yaml from "js-yaml";
 
 const db = new Database("statusdb.sqlite");
@@ -9,8 +10,9 @@ let config = await loadConfig();
 
 export const GET: APIRoute = async () => {
   try {
+    const configFilePath = path.resolve(process.cwd(), "config.yml");
     // Read the current YAML configuration from the file
-    const yamlData = await readFile("@/../config.yml", "utf8");
+    const yamlData = await readFile(configFilePath, "utf8");
 
     // Respond with the YAML data
     return new Response(yamlData, {
@@ -25,6 +27,7 @@ export const GET: APIRoute = async () => {
 
 export const POST: APIRoute = async ({ request }) => {
   try {
+    const configFilePath = path.resolve(process.cwd(), "config.yml");
     // Get the raw request body as text
     const rawBody = await request.text();
 
@@ -38,7 +41,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Write YAML data to the config file
     try {
-      await writeFile("./config.yml", rawBody);
+      await writeFile(configFilePath, rawBody);
     } catch (e) {
       return new Response("Failed to write config file", { status: 500 });
     }
