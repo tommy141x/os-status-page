@@ -1,5 +1,5 @@
 # Use the official Bun image as a base
-FROM bun:latest
+FROM oven/bun:latest
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -13,8 +13,8 @@ RUN bun install
 # Copy the rest of your application code
 COPY . .
 
-# Rename config.example.yml to config.yml
-RUN mv config.example.yml config.yml
+# Check if config.yml exists, and if not, exit with an error code
+RUN [ -f /app/config.yml ] || (echo "config.yml not found!" && exit 1)
 
 # Expose the port the app runs on
 EXPOSE 4321

@@ -4,6 +4,8 @@ services:
   app:
     build: .
     ports:
-      - "4321:4321"
+      - "80:4321"
     volumes:
       - .:/app
+    environment:
+      - NODE_ENV=development
