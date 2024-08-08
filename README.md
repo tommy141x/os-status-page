@@ -8,13 +8,13 @@ This project uses BunJS, Astro, React, Tailwind, and ShadcnUI.
 
 1. Clone the repository:
     ```bash
-    git clone <repository-url>
+    git clone https://github.com/tommy141x/os-status-page.git
     ```
 2. Navigate to the project directory:
     ```bash
-    cd <repository-directory>
+    cd os-status-page
     ```
-3. Install dependencies:
+3. Install dependencies (If using docker, this is not needed):
     ```bash
     bun install
     ```
