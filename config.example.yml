@@ -32,4 +32,4 @@ mail:
   send_from: ""
   enabled: false
 secret: supersecretkey
-port: "4321"
+port: "3000"
