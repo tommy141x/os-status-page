@@ -115,8 +115,9 @@ upgrade_process() {
   bun install
 
   # Print completion message
+  echo -e "${YELLOW}⚠️ Please check and update your config file if necessary. Old config file is saved as config.yml.old${NC}"
+  echo -e "${YELLOW}⚠️ Please run 'chmod +x setup.sh' as the setup.sh file has been replaced.${NC}"
   echo -e "${GREEN}✅ Upgrade complete!${NC}"
-    echo -e "${YELLOW}⚠️ Please check and update your config file if necessary. Old config file is saved as config.yml.old${NC}"
     cd ..
     sleep 3
   }
