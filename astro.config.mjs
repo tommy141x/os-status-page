@@ -8,6 +8,7 @@ import tailwind from "@astrojs/tailwind";
 export default defineConfig({
   adapter: bun(),
   output: "server",
+  server: { host: true },
   integrations: [
     react(),
     tailwind({
