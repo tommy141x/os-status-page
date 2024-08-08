@@ -29,6 +29,7 @@ import {
   GearIcon,
   CrossCircledIcon,
   CheckCircledIcon,
+  ShadowIcon,
   MinusCircledIcon,
   QuestionMarkCircledIcon,
 } from "@radix-ui/react-icons";
@@ -45,6 +46,16 @@ const getStatusColor = (status, isText) => {
       return isText ? "text-gray-500" : "bg-gray-500";
   }
 };
+
+const formatter = new Intl.DateTimeFormat("en-US", {
+  weekday: "long",
+  month: "long",
+  day: "numeric",
+  year: "numeric",
+  hour: "numeric",
+  minute: "numeric",
+  hour12: true,
+});
 
 const StatusIconMap = ({ status, size }) => {
   // Determine the appropriate icon and color based on status
@@ -110,9 +121,9 @@ const StatusChart = ({ data }) => {
                 {status && (
                   <>
                     <p className="text-xs text-muted-foreground">
-                      {new Date(
+                      {formatter.format(
                         Date.now() - (data.length - 1 - index) * 60 * 60 * 1000,
-                      ).toLocaleString()}
+                      )}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       Response Time:{" "}
@@ -129,10 +140,73 @@ const StatusChart = ({ data }) => {
   );
 };
 
-export const Services = memo(({ statusData }) => {
+const IncidentCard = ({ incident, statusData }) => {
+  const isOngoing = incident.resolved_timestamp
+    ? incident.resolved_timestamp > Date.now()
+    : true;
+
+  if (!isOngoing) return null;
+
+  const affectedServices = (incident.services || "")
+    .split(",")
+    .map((serviceUrl) => {
+      const trimmedUrl = serviceUrl.trim();
+      if (!trimmedUrl) return null;
+
+      return statusData.categories
+        .flatMap((category) => category.services)
+        .find((service) => service.url === trimmedUrl);
+    })
+    .filter((service) => service);
+
+  return (
+    <Card className="mb-4">
+      <CardHeader>
+        <CardTitle>
+          <Badge
+            variant="secondary"
+            className={
+              incident.type === "incident"
+                ? "bg-red-500 cursor-default"
+                : "bg-yellow-500 cursor-default"
+            }
+          >
+            {incident.type === "incident" ? "Incident" : "Maintenance"}
+          </Badge>
+          <span className="ml-2 text-lg font-semibold">{incident.title}</span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p>{incident.description}</p>
+        {affectedServices.length > 0 && (
+          <div className="mt-2">
+            <h4 className="font-bold text-lg">Affected Services:</h4>
+            <ul>
+              {affectedServices.map((service) => (
+                <li
+                  key={service.url}
+                  className="font-semibold flex items-center"
+                >
+                  <ShadowIcon className="mr-1" />
+                  {service.name}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </CardContent>
+      <CardFooter>
+        <span className="text-sm text-gray-500">
+          Started {formatter.format(incident.timestamp * 1000)}
+        </span>
+      </CardFooter>
+    </Card>
+  );
+};
+
+export const Services = memo(({ statusData, incidentsData }) => {
   if (!statusData) return null;
 
-  // Step 1: Gather all unique dates
   const allDates = new Set();
   statusData.categories.forEach((category) => {
     category.services.forEach((service) => {
@@ -226,10 +300,16 @@ export const Services = memo(({ statusData }) => {
           </div>
         )}
         <p className="text-md mb-6 text-muted-foreground">
-          Last updated {new Date(statusData.lastUpdate).toLocaleString()}
+          Last updated {formatter.format(statusData.lastUpdate)}
         </p>
       </section>
-
+      {incidentsData.map((incident) => (
+        <IncidentCard
+          key={incident.id}
+          incident={incident}
+          statusData={statusData}
+        />
+      ))}
       {statusData.categories.map((category, categoryIndex) => (
         <Card key={categoryIndex} className="bg-secondary mb-8">
           <CardHeader>
@@ -291,9 +371,7 @@ export const Services = memo(({ statusData }) => {
                             </p>
                             <div className="flex items-center pt-2">
                               <span className="text-xs text-muted-foreground">
-                                {new Date(
-                                  service.latest_timestamp,
-                                ).toLocaleString()}
+                                {formatter.format(service.latest_timestamp)}
                               </span>
                             </div>
                           </div>
@@ -344,7 +422,7 @@ export const Services = memo(({ statusData }) => {
               margin={{
                 left: 0,
                 right: 0,
-                top: 0,
+                top: 20,
                 bottom: 0,
               }}
               className="w-full h-full"

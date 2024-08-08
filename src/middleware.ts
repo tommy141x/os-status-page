@@ -55,9 +55,7 @@ const middleware: MiddlewareResponseHandler = async (context, next) => {
           permLevel: userData.permLevel,
         };
       }
-    } catch (error) {
-      console.error("Error verifying token:", error);
-    }
+    } catch (error) {}
   }
 
   if (currentPath === "/settings" && !(context.locals.user?.permLevel === 0)) {

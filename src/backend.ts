@@ -1,6 +1,4 @@
 import { Database } from "bun:sqlite";
-import { file } from "bun";
-import yaml from "js-yaml";
 import { loadConfig } from "./lib/server-utils";
 
 const db = new Database("statusdb.sqlite");
@@ -30,13 +28,14 @@ db.exec(`
     permLevel INTEGER
   );
   CREATE TABLE IF NOT EXISTS subscriptions (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      email TEXT UNIQUE,
-      subscription_date INTEGER
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT UNIQUE,
+    subscription_date INTEGER
   );
 `);
 
 let config = await loadConfig();
+let lastConfig = JSON.stringify(config);
 
 // Check service status
 async function checkService(
@@ -69,13 +68,13 @@ async function checkService(
     const result = await Promise.race([fetchPromise, timeoutPromise]);
     return result;
   } catch (error) {
-    return { status: "offline", responseTime: timeout };
+    return { status: "offline", responseTime: 0 };
   }
 }
 
 // Update service status in the database
 async function updateServiceStatus() {
-  config = await loadConfig();
+  config = await loadConfig(); // Fetch the latest config
   const timestamp = Date.now();
   for (const category of config.categories) {
     for (const service of category.services) {
@@ -94,19 +93,41 @@ function removeOldData() {
   db.prepare("DELETE FROM services WHERE timestamp < ?").run(cutoffTimestamp);
 }
 
-// Periodically update service status and remove old data
-setInterval(
-  () => {
-    updateServiceStatus();
-    removeOldData();
-  },
-  config.check_interval_minutes * 60 * 1000,
-);
+// Compare the current config with the last config
+function configHasChanged(currentConfig: any): boolean {
+  const currentConfigStr = JSON.stringify(currentConfig);
+  const hasChanged = currentConfigStr !== lastConfig;
+  lastConfig = currentConfigStr; // Update the last config
+  return hasChanged;
+}
 
-console.log(
-  "Updating website statuses every " +
-    config.check_interval_minutes +
-    " minutes.",
-);
+// Periodically check for config changes every 15 seconds
+setInterval(async () => {
+  try {
+    const currentConfig = await loadConfig(); // Fetch the latest config
+    if (configHasChanged(currentConfig)) {
+      console.log("Configuration changed. Updating status...");
+      await updateServiceStatus();
+      console.log("Status updated due to config change.");
+    }
+  } catch (error) {
+    console.error("Error checking configuration:", error);
+  }
+}, 15000); // Check every 15 seconds
 
-updateServiceStatus();
+// Periodically update service status and remove old data based on config check interval
+async function scheduleUpdates() {
+  const checkInterval = config.check_interval_minutes * 60 * 1000;
+  setInterval(async () => {
+    try {
+      await updateServiceStatus();
+      removeOldData();
+    } catch (error) {
+      console.error("Error updating status or removing old data:", error);
+    }
+  }, checkInterval);
+}
+
+// Start the periodic update scheduling
+console.log("Monitoring configuration changes and scheduling updates...");
+scheduleUpdates();
