@@ -13,6 +13,9 @@ RUN bun install
 # Copy the rest of your application code
 COPY . .
 
+# Rename config.example.yml to config.yml
+RUN mv config.example.yml config.yml
+
 # Expose the port the app runs on
 EXPOSE 4321
 
