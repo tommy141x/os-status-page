@@ -9,9 +9,6 @@ export function Dashboard({ user }) {
   const [statusData, setStatusData] = useState(null);
   const [statusDataLoading, setstatusDataLoading] = useState(true);
 
-  const [incidentsData, setIncidentsData] = useState([]);
-  const [incidentsDataLoading, setIncidentsDataLoading] = useState(true);
-
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -30,28 +27,11 @@ export function Dashboard({ user }) {
       }
     }
     fetchStatusData();
-
-    async function fetchIncidentsData() {
-      try {
-        const response = await fetch("/api/incidents");
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        setIncidentsData(data);
-      } catch (e) {
-        setError(e.message);
-      } finally {
-        setIncidentsDataLoading(false);
-      }
-    }
-    fetchIncidentsData();
   }, []);
 
-  if (statusDataLoading || incidentsDataLoading)
-    return <div className="bg-background">Loading...</div>;
+  if (statusDataLoading) return <div className="bg-background">Loading...</div>;
   if (error) return <div>Error: {error}</div>;
-  if (!statusData || !incidentsData) return <div>No data available</div>;
+  if (!statusData) return <div>No data available</div>;
 
   return (
     <HeaderNav
@@ -65,7 +45,7 @@ export function Dashboard({ user }) {
         {
           value: "incidents",
           label: "Incidents",
-          content: <Incidents incidentsData={incidentsData} user={user} />,
+          content: <Incidents statusData={statusData} user={user} />,
         },
       ]}
     />
