@@ -234,6 +234,9 @@ export function UsersSettings() {
               </Button>
             </div>
             <CardDescription>Manage and add your users here.</CardDescription>
+            <CardDescription>
+              After adding a user, they can login at /login{" "}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
