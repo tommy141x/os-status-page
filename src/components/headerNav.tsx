@@ -169,7 +169,7 @@ export function HeaderNav({
           <div className="w-full px-4 md:px-8 flex items-center justify-between h-16">
             <a href="/" className="flex items-center space-x-2 text-primary">
               <CheckCircledIcon className="hidden md:inline h-5 w-5 text-primary" />
-              <p className="text-sm md:text-lg font-bold whitespace-nowrap text-primary">
+              <p className="hidden md:inline text-lg font-bold whitespace-nowrap text-primary">
                 {config.name}
               </p>
             </a>
