@@ -145,11 +145,9 @@ export function HeaderNav({
               <div className="grid grid-cols-4 items-center gap-4">
                 <div className="col-span-4 text-center">
                   {subscriptionStatus.subscribed && (
-                    <>
-                      <p className="text-muted-foreground">
-                        Subscribed on: {subscriptionStatus.subscription_date}
-                      </p>
-                    </>
+                    <p className="text-muted-foreground">
+                      Subscribed on: {subscriptionStatus.subscription_date}
+                    </p>
                   )}
                 </div>
               </div>
@@ -168,9 +166,9 @@ export function HeaderNav({
       </Dialog>
       <Tabs defaultValue={tabs[0]?.value} className="flex flex-col flex-grow">
         <div className="w-full bg-background shadow-md">
-          <div className="w-full px-8 flex items-center justify-between h-16">
+          <div className="w-full px-4 md:px-8 flex items-center justify-between h-16">
             <a href="/" className="flex items-center space-x-2 text-primary">
-              <CheckCircledIcon className="h-5 w-5 text-primary" />
+              <CheckCircledIcon className="hidden md:inline h-5 w-5 text-primary" />
               <p className="text-xl font-bold whitespace-nowrap text-primary">
                 {config.name}
               </p>
@@ -189,7 +187,7 @@ export function HeaderNav({
                 ))}
               </TabsList>
             )}
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1 md:space-x-2">
               <div className="text-xl mx-1 flex items-center">
                 <ThemeToggle />
               </div>
@@ -203,11 +201,11 @@ export function HeaderNav({
               {showUpdates && config.mail.enabled && (
                 <Button
                   variant="secondary"
-                  className="flex items-center"
+                  className="md:space-x-1 flex md:items-center"
                   onClick={() => setDialogOpen(true)}
                 >
-                  Get Updates
-                  <Share1Icon className="ml-2 h-4 w-4" />
+                  <span className="hidden md:inline">Get Updates</span>
+                  <Share1Icon className="h-4 w-4" />
                 </Button>
               )}
             </div>

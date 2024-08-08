@@ -1,4 +1,5 @@
 // Services.tsx
+import { memo } from "react";
 import { Button } from "@/components/ui/button";
 import {
   HoverCard,
@@ -13,6 +14,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+
+import { Area, AreaChart, XAxis, YAxis } from "recharts";
+
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components//ui/chart";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 
@@ -120,8 +129,83 @@ const StatusChart = ({ data }) => {
   );
 };
 
-export const Services = ({ statusData }) => {
+export const Services = memo(({ statusData }) => {
   if (!statusData) return null;
+
+  // Step 1: Gather all unique dates
+  const allDates = new Set();
+  statusData.categories.forEach((category) => {
+    category.services.forEach((service) => {
+      service.hourly_status.forEach((entry, index) => {
+        if (entry.response_time !== null) {
+          allDates.add(`2024-01-0${index + 1}`);
+        }
+      });
+    });
+  });
+
+  // Convert the set to an array and sort it
+  const datesArray = Array.from(allDates).sort();
+
+  // Step 2: Initialize series and chartData
+  const chartData = [];
+  const series = {};
+
+  // Function to generate a random shade of a base color
+  function getRandomShade(baseColor) {
+    const [r, g, b] = baseColor.match(/\w\w/g).map((hex) => parseInt(hex, 16));
+    const randomFactor = Math.random(); // Adjust the shade by a factor
+    const newR = Math.min(255, Math.floor(r * randomFactor));
+    const newG = Math.min(255, Math.floor(g * randomFactor));
+    const newB = Math.min(255, Math.floor(b * randomFactor));
+    return `#${((1 << 24) + (newR << 16) + (newG << 8) + newB).toString(16).slice(1)}`;
+  }
+
+  function getBaseColor(status) {
+    switch (status) {
+      case "online":
+        return "hsl(120, 100%, 50%)"; // Green
+      case "issues":
+        return "hsl(60, 100%, 50%)"; // Yellow
+      case "offline":
+        return "hsl(0, 100%, 50%)"; // Red
+      default:
+        return "hsl(0, 0%, 0%)"; // Default to black if status is unknown
+    }
+  }
+
+  function randomizeHue(hslColor, range = 30) {
+    let [h, s, l] = hslColor.match(/\d+/g).map(Number);
+    const randomShift = Math.random() * range * 2 - range; // Random shift within the range
+    h = (h + randomShift) % 360;
+    if (h < 0) h += 360; // Ensure hue is within 0-360 range
+    return `hsl(${Math.round(h)}, ${s}%, ${l}%)`;
+  }
+
+  // Updated code
+  datesArray.forEach((date) => {
+    const dataPoint = { date };
+    statusData.categories.forEach((category) => {
+      category.services.forEach((service) => {
+        const entry = service.hourly_status.find(
+          (e) =>
+            e.response_time !== null &&
+            date === `2024-01-0${service.hourly_status.indexOf(e) + 1}`,
+        );
+        if (entry) {
+          dataPoint[service.name] = entry.response_time;
+          if (!series[service.name]) {
+            const baseColor = getBaseColor(service.status);
+            series[service.name] = {
+              dataKey: service.name,
+              color: randomizeHue(baseColor),
+            };
+          }
+        }
+      });
+    });
+    chartData.push(dataPoint);
+  });
 
   return (
     <div className="flex-grow p-4 overflow-auto max-w-7xl mx-auto w-full">
@@ -238,6 +322,88 @@ export const Services = ({ statusData }) => {
           </CardContent>
         </Card>
       ))}
+      <Card className="bg-secondary mb-8 h-[300px] flex flex-col overflow-hidden">
+        <CardHeader className="space-y-0 pb-0">
+          <CardTitle className="flex items-baseline text-2xl tabular-nums">
+            Response Times
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0 flex-1 overflow-hidden">
+          <ChartContainer
+            className="w-full h-full"
+            config={{
+              time: {
+                label: "Time",
+                color: "hsl(var(--chart-2))",
+              },
+            }}
+          >
+            <AreaChart
+              accessibilityLayer
+              data={chartData}
+              margin={{
+                left: 0,
+                right: 0,
+                top: 0,
+                bottom: 0,
+              }}
+              className="w-full h-full"
+            >
+              <XAxis dataKey="date" hide />
+              <YAxis domain={["dataMin - 5", "dataMax + 2"]} hide />
+              <defs>
+                {Object.values(series).map(({ dataKey, color }) => (
+                  <linearGradient
+                    key={dataKey}
+                    id={`fill${dataKey}`}
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop offset="5%" stopColor={color} stopOpacity={0.8} />
+                    <stop offset="95%" stopColor={color} stopOpacity={0.1} />
+                  </linearGradient>
+                ))}
+              </defs>
+              {Object.values(series).map(({ dataKey, color }) => (
+                <Area
+                  key={dataKey}
+                  dataKey={dataKey}
+                  type="natural"
+                  fill={`url(#fill${dataKey})`}
+                  fillOpacity={0.4}
+                  stroke={color}
+                />
+              ))}
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent hideLabel />}
+                formatter={(value, name) => {
+                  const lineColor = series[name]?.color || "currentColor";
+                  return (
+                    <div className="flex flex-col text-xs text-muted-foreground mb-2">
+                      <div className="flex items-center">
+                        Service:
+                        <div
+                          className="ml-2 text-foreground"
+                          style={{ color: lineColor }}
+                        >
+                          {name}
+                        </div>
+                      </div>
+                      <div className="flex items-center mt-1">
+                        Response Time:
+                        <div className="ml-2 text-foreground">{value}ms</div>
+                      </div>
+                    </div>
+                  );
+                }}
+              />
+            </AreaChart>
+          </ChartContainer>
+        </CardContent>
+      </Card>
     </div>
   );
-};
+});

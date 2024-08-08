@@ -71,7 +71,8 @@ const middleware: MiddlewareResponseHandler = async (context, next) => {
     !context.locals.user &&
     !isEmpty &&
     currentPath.endsWith("/status") === false &&
-    currentPath.endsWith("/login") === false
+    currentPath.endsWith("/login") === false &&
+    currentPath.endsWith("/subscribe") === false
   ) {
     db.close();
     return new Response("Unauthorized", { status: 401 });

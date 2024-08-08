@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import yaml from "js-yaml";
 import {
   Card,
@@ -160,7 +160,7 @@ const StatusIconMap = ({ status, size }) => {
   );
 };
 
-export const Incidents = ({ statusData, user }) => {
+export const Incidents = memo(({ statusData, user }) => {
   const [incidentsData, setIncidentsData] = useState([]);
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -178,9 +178,28 @@ export const Incidents = ({ statusData, user }) => {
 
   const sortIncidents = (incidents) => {
     return incidents.sort((a, b) => {
-      const aTimestamp = a.resolved_timestamp || a.timestamp;
-      const bTimestamp = b.resolved_timestamp || b.timestamp;
-      return bTimestamp - aTimestamp;
+      // If both incidents have no resolved_timestamp, compare using timestamp
+      if (!a.resolved_timestamp && !b.resolved_timestamp) {
+        return (b.timestamp || 0) - (a.timestamp || 0);
+      }
+
+      // If a has no resolved_timestamp but b does, a should come first
+      if (!a.resolved_timestamp && b.resolved_timestamp) {
+        return -1;
+      }
+
+      // If b has no resolved_timestamp but a does, b should come first
+      if (a.resolved_timestamp && !b.resolved_timestamp) {
+        return 1;
+      }
+
+      // If both incidents have resolved_timestamp, compare them
+      if (a.resolved_timestamp && b.resolved_timestamp) {
+        return b.resolved_timestamp - a.resolved_timestamp;
+      }
+
+      // Fallback to timestamp comparison if necessary
+      return (b.timestamp || 0) - (a.timestamp || 0);
     });
   };
 
@@ -640,4 +659,4 @@ export const Incidents = ({ statusData, user }) => {
       )}
     </div>
   );
-};
+});
