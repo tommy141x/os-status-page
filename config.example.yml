@@ -20,15 +20,16 @@ categories:
         url: https://whatinthebrokenwebsiteisthis.com
         hide_url: true
         expected_response_code: 200
-data_retention_hours: '24'
-check_interval_minutes: '15'
+data_retention_hours: "24"
+check_interval_minutes: "15"
 name: OS Status
 mail:
   smtp:
     host: smtp.gmail.com
-    port: '587'
-    username: ''
-    password: ''
-  send_from: ''
+    port: "587"
+    username: ""
+    password: ""
+  send_from: ""
   enabled: false
 secret: supersecretkey
+port: "4321"
