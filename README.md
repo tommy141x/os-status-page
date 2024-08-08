@@ -4,6 +4,8 @@
 
 This project uses BunJS, Astro, React, Tailwind, and ShadcnUI.
 
+[Live Demo](https://status.timmygstudios.com/)
+
 ## Installation and Setup
 
 1. Clone the repository:
