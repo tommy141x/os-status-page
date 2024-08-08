@@ -279,7 +279,7 @@ stop_process() {
   fi
 
   echo "Application stopped!"
-  sleep 3
+  sleep 1
 }
 
 animate_loading() {
