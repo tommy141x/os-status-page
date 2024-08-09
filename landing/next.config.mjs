@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "export", // Use "export" for static site generation (SSG) and exporting
-  distDir: "landing/out", // Directory where the build output will go
+  distDir: "/out", // Directory where the build output will go
   assetPrefix: "/os-status-page", // GitHub repository name
   basePath: "/os-status-page", // GitHub repository name
   images: {
