@@ -33,6 +33,8 @@ I created this project because I couldn't find a lightweight status page that wa
 
 Contributions to this project are encouraged and appreciated. Please feel free to submit pull requests or open issues if you encounter any problems or have suggestions for improvements.
 
+![Alt](https://repobeats.axiom.co/api/embed/19f88f4c6a981fc2d81415907ca79424988ffe87.svg "Repobeats analytics image")
+
 ## License
 
 This project is open source and available under the [Creative Commons Attribution-ShareAlike 4.0 International License](LICENSE).
