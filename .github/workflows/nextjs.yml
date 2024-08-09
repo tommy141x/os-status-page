@@ -25,7 +25,10 @@ jobs:
         with:
           node-version: "20"
       - name: Install BunJS
-        run: curl -fsSL https://bun.sh/install | bash
+        run: |
+          curl -fsSL https://bun.sh/install | bash
+          # Ensure bun is in the PATH
+          echo "$HOME/.bun/bin" >> $GITHUB_PATH
       - name: Detect package manager
         id: detect-package-manager
         run: |
