@@ -1,7 +1,10 @@
 import type { APIRoute } from "astro";
 import { Database } from "bun:sqlite";
+import { sendMail } from "@/lib/mail";
+import { loadConfig } from "@/lib/server-utils";
 
 const db = new Database("statusdb.sqlite");
+let config = await loadConfig();
 
 // Helper function to get incidents
 async function getIncidents() {
@@ -51,6 +54,16 @@ async function createOrUpdateIncident(incident: any) {
       timestamp,
       resolved_timestamp,
     );
+    let formattedType =
+      type.trim().charAt(0).toUpperCase() + type.trim().slice(1);
+    await sendMail({
+      subject: `${formattedType} - ${title}`,
+      html: `
+        <h1>${config.name} - ${formattedType}</h1>
+        <p>${description}</p>
+        <p>Services affected: ${services}</p>
+      `,
+    });
   }
 }
 

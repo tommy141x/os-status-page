@@ -21,13 +21,43 @@ export const GET: APIRoute = async ({ url }) => {
       )
       .all();
 
+    // Create a map to store the latest data for each service
+    const latestStatusMap = new Map<
+      string,
+      { status: string; response_time: number; timestamp: number }
+    >();
+
+    services.forEach((service) => {
+      if (
+        !latestStatusMap.has(service.url) ||
+        service.timestamp > latestStatusMap.get(service.url)!.timestamp
+      ) {
+        latestStatusMap.set(service.url, {
+          status: service.status,
+          response_time: service.response_time,
+          timestamp: service.timestamp,
+        });
+      }
+    });
+
+    const latestTimestamp = Math.max(
+      ...Array.from(latestStatusMap.values()).map((s) => s.timestamp),
+      0,
+    );
+
     const allConfiguredServices = config.categories.flatMap(
       (category) => category.services,
     );
+
     const validServices = allConfiguredServices.map((configService) => {
-      const service = services.find((s) => s.url === configService.url);
-      return service
-        ? service
+      const latestServiceData = latestStatusMap.get(configService.url);
+      return latestServiceData
+        ? {
+            url: configService.url,
+            status: latestServiceData.status,
+            timestamp: latestServiceData.timestamp,
+            response_time: latestServiceData.response_time,
+          }
         : {
             url: configService.url,
             status: null,
@@ -39,6 +69,7 @@ export const GET: APIRoute = async ({ url }) => {
     const overallStatus = validServices.every((s) => s.status === "online")
       ? "online"
       : "issues";
+
     const statusData = {};
     const uptimePercentages = {};
     const timeRanges = {};
@@ -87,7 +118,7 @@ export const GET: APIRoute = async ({ url }) => {
           response_time: service ? service.response_time : null,
           status_data: serviceData,
           uptime_percentage:
-            uptimePercentages[configService.url].toFixed(2) + "%",
+            uptimePercentages[configService.url]?.toFixed(0) + "%",
           timeRange: timeRanges[configService.url],
         };
       });
@@ -102,7 +133,7 @@ export const GET: APIRoute = async ({ url }) => {
       JSON.stringify({
         categories: categoriesWithServices,
         overallStatus,
-        lastUpdate: Date.now(),
+        lastUpdate: latestTimestamp,
       }),
       {
         status: 200,

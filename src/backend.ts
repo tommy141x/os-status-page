@@ -1,5 +1,6 @@
 import { Database } from "bun:sqlite";
 import { loadConfig } from "./lib/server-utils";
+import { sendMail } from "./lib/mail";
 
 const db = new Database("statusdb.sqlite");
 
@@ -73,6 +74,63 @@ async function checkService(
   }
 }
 
+// Function to send an email alert
+async function sendStatusAlert(serviceUrl: string, status: string) {
+  // Find service details by URL
+  let service = null;
+  for (const category of config.categories) {
+    for (const svc of category.services) {
+      if (svc.url === serviceUrl) {
+        service = svc;
+        break;
+      }
+    }
+    if (service) break;
+  }
+
+  if (!service) {
+    console.error("Service not found in config");
+    return;
+  }
+
+  // Determine whether to show the URL or not
+  const hideUrlText = service.hide_url
+    ? `<b>${service.name}</b>`
+    : `<a href="${service.url}">${service.name}</a>`;
+
+  // Send the email
+  await sendMail({
+    subject: `Service Status Alert: ${service.name}`,
+    html: `
+      <h1>${service.name} - Issues Detected</h1>
+      <p>The service ${hideUrlText} is having issues currently.</p>
+    `,
+  });
+}
+
+// Check status history and send alert if needed
+async function checkStatusHistory(service: ServiceConfig) {
+  const rows = db
+    .prepare(
+      "SELECT status FROM services WHERE url = ? ORDER BY timestamp DESC LIMIT 3",
+    )
+    .all(service.url);
+
+  if (rows.length < 3) {
+    return; // Not enough data to make a decision
+  }
+
+  const [latest, previous, older] = rows;
+
+  if (
+    (latest.status === "issues" || latest.status === "offline") &&
+    (previous.status === "issues" || previous.status === "offline") &&
+    older.status === "online"
+  ) {
+    await sendStatusAlert(service.url, latest.status);
+  }
+}
+
 // Update service status in the database
 async function updateServiceStatus() {
   config = await loadConfig(); // Fetch the latest config
@@ -83,6 +141,11 @@ async function updateServiceStatus() {
       db.prepare(
         "INSERT INTO services (url, status, response_time, timestamp) VALUES (?, ?, ?, ?)",
       ).run(service.url, status, responseTime, timestamp);
+
+      // Check if the service status is offline or issues, and if so, check its history
+      if (status === "offline" || status === "issues") {
+        await checkStatusHistory(service);
+      }
     }
   }
 }
