@@ -55,8 +55,6 @@ jobs:
         run: cd landing && ${{ steps.detect-package-manager.outputs.runner }} ${{ steps.detect-package-manager.outputs.command }}
       - name: Build with Next.js
         run: cd landing && ${{ steps.detect-package-manager.outputs.runner }} next build
-      - name: Export Next.js static files
-        run: cd landing && ${{ steps.detect-package-manager.outputs.runner }} next export
 
   deploy:
     environment:
