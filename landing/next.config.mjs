@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "export",
+  assetPrefix: "/os-status/",
+  basePath: "/os-status/",
   images: {
     unoptimized: true,
     remotePatterns: [
