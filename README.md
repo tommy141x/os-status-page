@@ -12,10 +12,6 @@ This project uses BunJS, Astro, React, Tailwind, and ShadcnUI.
     ```bash
     curl -O https://raw.githubusercontent.com/tommy141x/os-status-page/main/scripts/setup.sh && chmod +x setup.sh && ./setup.sh
     ```
-    or
-    ```bash
-    wget https://raw.githubusercontent.com/tommy141x/os-status-page/main/scripts/setup.sh && chmod +x setup.sh && ./setup.sh
-    ```
 2. Rename `config.example.yml` to `config.yml` and fill in the values if needed (change the secret to something else, it's for storing session cookies). You can edit everything else in the config on the web UI.
 3. View the status page at port 3000 (or the port you specified in the config)
 
