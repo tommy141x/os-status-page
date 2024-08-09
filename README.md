@@ -1,4 +1,4 @@
-# Open Source Status Page
+# OS-Status
 
 ![Feature Mockup](mockup.png)
 
