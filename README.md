@@ -1,6 +1,6 @@
 # OS-Status
 
-![Feature Mockup](mockup.png)
+![Feature Mockup](https://tommy141x.github.io/os-status-page/hero-image-light.jpeg)
 
 This project uses BunJS, Astro, React, Tailwind, and ShadcnUI.
 
@@ -23,7 +23,7 @@ This project uses BunJS, Astro, React, Tailwind, and ShadcnUI.
 - **User Roles:** Admins have full access to the settings, while Managers can only manage incidents.
 - **Dark/Light Mode:** The status page supports both dark and light modes.
 
-![Demo Picture](demo.png)
+![Demo Picture](https://tommy141x.github.io/os-status-page/hero-image-dark.jpeg)
 
 ## Motivation
 
