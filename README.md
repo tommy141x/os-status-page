@@ -37,4 +37,4 @@ Contributions to this project are encouraged and appreciated. Please feel free t
 
 ## License
 
-This project is open source and available under the [Creative Commons Attribution-ShareAlike 4.0 International License](LICENSE).
+This project is open source and available under the [Creative Commons Attribution-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-sa/4.0/deed.en).
