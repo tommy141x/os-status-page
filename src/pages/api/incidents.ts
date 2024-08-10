@@ -54,16 +54,20 @@ async function createOrUpdateIncident(incident: any) {
       timestamp,
       resolved_timestamp,
     );
-    let formattedType =
-      type.trim().charAt(0).toUpperCase() + type.trim().slice(1);
-    await sendMail({
-      subject: `${formattedType} - ${title}`,
-      html: `
-        <h1>${config.name} - ${formattedType}</h1>
-        <p>${description}</p>
-        <p>Services affected: ${services}</p>
-      `,
-    });
+
+    // Send email asynchronously without waiting for it to complete
+    setTimeout(() => {
+      let formattedType =
+        type.trim().charAt(0).toUpperCase() + type.trim().slice(1);
+      sendMail({
+        subject: `${formattedType} - ${title}`,
+        html: `
+          <h1>${config.name} - ${formattedType}</h1>
+          <p>${description}</p>
+          <p>Services affected: ${services}</p>
+        `,
+      }).catch((error) => console.error("Error sending email:", error));
+    }, 0);
   }
 }
 

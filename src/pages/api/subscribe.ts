@@ -13,18 +13,19 @@ export const POST: APIRoute = async ({ request }) => {
     const { email } = await request.json();
     if (!email) return new Response("Email is required.", { status: 400 });
 
-    // Prepare and execute the query to check if the email exists
-    const checkStmt = db.prepare("SELECT 1 FROM subscriptions WHERE email = ?");
+    // Prepare and execute the query to check if the email exists (case-insensitive)
+    const checkStmt = db.prepare(
+      "SELECT 1 FROM subscriptions WHERE LOWER(email) = LOWER(?)",
+    );
     const exists = checkStmt.get(email);
     if (exists)
       return new Response("Email is already subscribed.", { status: 400 });
 
     // Insert the new subscription
     const insertStmt = db.prepare(
-      "INSERT INTO subscriptions (email, subscription_date) VALUES (?, ?)",
+      "INSERT INTO subscriptions (email, subscription_date) VALUES (LOWER(?), ?)",
     );
     insertStmt.run(email, Date.now());
-
     return new Response("Subscription added successfully.", { status: 200 });
   } catch (error) {
     if (
@@ -42,16 +43,19 @@ export const DELETE: APIRoute = async ({ request }) => {
     const { email } = await request.json();
     if (!email) return new Response("Email is required.", { status: 400 });
 
-    // Prepare and execute the query to check if the email exists
-    const checkStmt = db.prepare("SELECT 1 FROM subscriptions WHERE email = ?");
+    // Prepare and execute the query to check if the email exists (case-insensitive)
+    const checkStmt = db.prepare(
+      "SELECT 1 FROM subscriptions WHERE LOWER(email) = LOWER(?)",
+    );
     const exists = checkStmt.get(email);
     if (!exists)
       return new Response("Email is not subscribed.", { status: 404 });
 
-    // Delete the subscription
-    const deleteStmt = db.prepare("DELETE FROM subscriptions WHERE email = ?");
+    // Delete the subscription (case-insensitive)
+    const deleteStmt = db.prepare(
+      "DELETE FROM subscriptions WHERE LOWER(email) = LOWER(?)",
+    );
     deleteStmt.run(email);
-
     return new Response("Subscription removed successfully.", { status: 200 });
   } catch (error) {
     return handleError(error, "Failed to remove subscription.", 500);
@@ -67,10 +71,11 @@ export const GET: APIRoute = async ({ request }) => {
         headers: { "Content-Type": "application/json" },
       });
 
-    // Prepare and execute the query to retrieve subscription details
-    const stmt = db.prepare("SELECT * FROM subscriptions WHERE email = ?");
+    // Prepare and execute the query to retrieve subscription details (case-insensitive)
+    const stmt = db.prepare(
+      "SELECT * FROM subscriptions WHERE LOWER(email) = LOWER(?)",
+    );
     const result = stmt.get(email);
-
     if (result) {
       const subscriptionDateISO = new Date(
         result.subscription_date,
@@ -83,7 +88,6 @@ export const GET: APIRoute = async ({ request }) => {
         { status: 200, headers: { "Content-Type": "application/json" } },
       );
     }
-
     return new Response(JSON.stringify({ subscribed: false }), {
       status: 200,
       headers: { "Content-Type": "application/json" },

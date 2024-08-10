@@ -318,6 +318,21 @@ exit_script() {
   exit 0
 }
 
+get_local_version() {
+    if [ -f "$folder_name/package.json" ]; then
+        version=$(grep -o '"version": "[^"]*' "$folder_name/package.json" | cut -d'"' -f4)
+        echo "$version"
+    else
+        echo "N/A"
+    fi
+}
+
+get_latest_version() {
+response=$(curl -s https://api.github.com/repos/tommy141x/os-status-page/releases/latest)
+name=$(echo "$response" | sed -n 's/.*"name": "\(.*\)",/\1/p')
+echo "$name"
+}
+
 # Function to display ASCII art
 display_ascii() {
   echo -e "${NC}
@@ -338,7 +353,17 @@ display_menu() {
     # Clear the screen and display menu header
     clear
     display_ascii
+
+    local_version=$(get_local_version)
+    latest_version=$(get_latest_version)
+
     echo "Welcome to the Setup Menu! 🚀"
+    # Display local version with update status
+       if [ "$local_version" = "$latest_version" ]; then
+         echo -e "Version: ${BLUE}$local_version${NC} (Latest) 🟢"
+       else
+         echo -e "Version: ${BLUE}$local_version${NC} (Update available: $latest_version) 🟡"
+       fi
 
     # Determine process status
        if [ -f "$folder_name/$LOCK_FILE" ]; then
