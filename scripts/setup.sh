@@ -226,7 +226,7 @@ start_with_docker() {
   # Check for success indicators in the log file
   while [ $elapsed -lt $timeout ]; do
     if grep -q "http" "latest.log"; then
-      echo "${GREEN}✅ Application started with Docker!"
+      echo -e "${GREEN}✅ Application started with Docker!"
       break
     fi
     sleep $interval
