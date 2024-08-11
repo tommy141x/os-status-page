@@ -8,6 +8,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ChevronsLeft } from "lucide-react";
+import { navigate } from "astro:transitions/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -47,12 +49,19 @@ export function LoginForm() {
     <Card className="w-full max-w-sm">
       <form onSubmit={handleSubmit}>
         <CardHeader>
-          <div
-            className="flex justify-between items-center"
-            style={{ fontSize: "1.5rem" }}
-          >
-            <CardTitle className="text-2xl">Welcome</CardTitle>
+          <div className="flex flex-col items-start">
+            <Button
+              variant="ghost"
+              className="flex items-center px-1"
+              onClick={() => navigate("/")}
+            >
+              <ChevronsLeft className="mr-1" />
+              <p className="hover:text-blue-500">Back</p>
+            </Button>
+
+            <CardTitle className="text-2xl mt-2">Welcome</CardTitle>
           </div>
+
           <CardDescription>Please login to continue</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">

@@ -94,7 +94,6 @@ const fetchUsers = async (setUsers) => {
 
 export const UsersSettings = memo(({ user }) => {
   const [settings, setSettings] = useState({ categories: [], mail: {} });
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [users, setUsers] = useState([]);
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
@@ -108,21 +107,19 @@ export const UsersSettings = memo(({ user }) => {
     fetchSettings()
       .then((fetchedSettings) => {
         setSettings(fetchedSettings);
-        setLoading(false);
       })
       .catch((err) => {
         setError("Failed to fetch settings");
-        setLoading(false);
       });
   }, []);
 
   useEffect(() => {
-    if (!loading) {
+    if (settings.mail.enabled) {
       saveSettings(settings).catch((error) => {
         console.error("Failed to autosave settings", error);
       });
     }
-  }, [settings, loading]);
+  }, [settings]);
 
   useEffect(() => {
     fetchUsers(setUsers);
@@ -201,7 +198,6 @@ export const UsersSettings = memo(({ user }) => {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
 
   const addUserDialogContent = (

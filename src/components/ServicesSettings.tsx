@@ -217,7 +217,6 @@ function CategoryDialog({ category, onClose, onSave, isNew }) {
 
 export const ServicesSettings = memo(({ user }) => {
   const [settings, setSettings] = useState({ categories: [], mail: {} });
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [dialogType, setDialogType] = useState(null);
   const [selectedService, setSelectedService] = useState(null);
@@ -228,23 +227,20 @@ export const ServicesSettings = memo(({ user }) => {
     fetchSettings()
       .then((fetchedSettings) => {
         setSettings(fetchedSettings);
-        setLoading(false);
       })
       .catch((err) => {
         setError("Failed to fetch settings");
-        setLoading(false);
       });
   }, []);
 
   useEffect(() => {
-    if (!loading) {
+    if (settings.mail.enabled) {
       saveSettings(settings).catch((error) => {
         console.error("Failed to autosave settings", error);
       });
     }
-  }, [settings, loading]);
+  }, [settings]);
 
-  if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
 
   const handleServiceSave = (updatedService) => {

@@ -94,6 +94,7 @@ upgrade_process() {
 
   # Backup configuration and database
   [ -f "$folder_name/config.yml" ] && mv "$folder_name/config.yml" "config.yml.bak"
+  [ -f "$folder_name/public/logo.png" ] && mv "$folder_name/public/logo.png" "logo.png.bak"
   [ -f "$folder_name/statusdb.sqlite" ] && mv "$folder_name/statusdb.sqlite" "statusdb.sqlite.bak"
   [ -f "$folder_name/docker-compose.yml" ] && mv "$folder_name/docker-compose.yml" "docker-compose.yml.bak"
 
@@ -105,9 +106,11 @@ upgrade_process() {
 
   # Restore the configuration and database
   [ -f "config.yml.bak" ] && mv "config.yml.bak" "$folder_name/config.yml.old"
+    [ -f "logo.png.bak" ] && mv "logo.png.bak" "$folder_name/public/logo.png"
   [ -f "docker-compose.yml.bak" ] && mv "docker-compose.yml.bak" "$folder_name/docker-compose.yml.old"
   [ -f "statusdb.sqlite.bak" ] && mv "statusdb.sqlite.bak" "$folder_name/statusdb.sqlite"
   [ -f "$folder_name/scripts/setup.sh" ] && mv "$folder_name/scripts/setup.sh" "setup.sh"
+  chmod +x setup.sh
 
   # Change directory to the extracted folder
   cd "$folder_name" || { echo "Failed to change directory to $folder_name"; exit 1; }
@@ -116,10 +119,10 @@ upgrade_process() {
 
   # Print completion message
   echo -e "${YELLOW}⚠️ Please check and update your config file if necessary. Old config file is saved as config.yml.old${NC}"
-  echo -e "${YELLOW}⚠️ Please run 'chmod +x setup.sh' as the setup.sh file has been replaced.${NC}"
   echo -e "${GREEN}✅ Upgrade complete!${NC}"
     cd ..
     sleep 3
+    exec ./setup.sh
   }
 
 start_process() {

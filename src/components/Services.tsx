@@ -152,7 +152,7 @@ const IncidentCard = ({ incident, statusData }) => {
       const trimmedUrl = serviceUrl.trim();
       if (!trimmedUrl) return null;
 
-      return statusData.categories
+      return statusData?.categories
         .flatMap((category) => category.services)
         .find((service) => service.url === trimmedUrl);
     })
@@ -253,14 +253,8 @@ export const Services = memo(({ user }) => {
     );
   }
 
-  if (statusData === null || incidentsData === null) {
-    return (
-      <div className="flex items-center justify-center h-full">No Data</div>
-    );
-  }
-
   const allDates = new Set();
-  statusData.categories.forEach((category) => {
+  statusData?.categories.forEach((category) => {
     category.services.forEach((service) => {
       service.status_data.forEach((entry, index) => {
         if (entry.response_time !== null) {
@@ -311,7 +305,7 @@ export const Services = memo(({ user }) => {
   // Updated code
   datesArray.forEach((date) => {
     const dataPoint = { date };
-    statusData.categories.forEach((category) => {
+    statusData?.categories.forEach((category) => {
       category.services.forEach((service) => {
         const entry = service.status_data.find(
           (e) =>
@@ -352,33 +346,33 @@ export const Services = memo(({ user }) => {
       />
 
       <section className="text-center my-12 cursor-default">
-        {statusData.overallStatus === "online" ? (
+        {!statusData || statusData.overallStatus === "online" ? (
           <div className="flex flex-col items-center">
-            <StatusIconMap status={statusData.overallStatus} size="3rem" />
+            <StatusIconMap status="online" size="3rem" />
             <h1 className="text-primary font-bold text-4xl my-4">
               All services are online
             </h1>
           </div>
         ) : (
           <div className="flex flex-col items-center">
-            <StatusIconMap status={statusData.overallStatus} size="3rem" />
+            <StatusIconMap status={statusData?.overallStatus} size="3rem" />
             <h1 className="text-primary font-bold text-4xl my-4">
               Some services are having issues
             </h1>
           </div>
         )}
         <p className="text-md mb-6 text-muted-foreground">
-          Last updated {formatter.format(statusData.lastUpdate)}
+          Last updated {formatter.format(statusData?.lastUpdate)}
         </p>
       </section>
-      {incidentsData.map((incident) => (
+      {incidentsData?.map((incident) => (
         <IncidentCard
           key={incident.id}
           incident={incident}
           statusData={statusData}
         />
       ))}
-      {statusData.categories.map((category, categoryIndex) => (
+      {statusData?.categories.map((category, categoryIndex) => (
         <Card key={categoryIndex} className="bg-secondary mb-8">
           <CardHeader>
             <div

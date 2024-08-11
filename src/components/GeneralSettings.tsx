@@ -1,4 +1,4 @@
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, useCallback, memo } from "react";
 import {
   Card,
   CardContent,
@@ -34,15 +34,54 @@ function InputField({ label, id, name, value, onChange, type = "text" }) {
   );
 }
 
+// Debounce function
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
 export const GeneralSettings = memo(({ user }) => {
-  const [settings, setSettings] = useState({ categories: [], mail: {} });
+  const [settings, setSettings] = useState({
+    name: "",
+    categories: [],
+    mail: {
+      enabled: false,
+      smtp: {
+        host: "",
+        port: "",
+        username: "",
+        password: "",
+      },
+      send_from: "",
+    },
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [debouncedNameAndLogo, setDebouncedNameAndLogo] = useState({
+    name: settings.name,
+    logoUpdated: false,
+  });
+
+  const debouncedUpdateNameAndLogo = useCallback(
+    debounce((name, logoUpdated) => {
+      setDebouncedNameAndLogo({ name, logoUpdated });
+    }, 900),
+    [],
+  );
+
+  const [settingsSaved, setSettingsSaved] = useState(false);
 
   useEffect(() => {
     fetchSettings()
       .then((fetchedSettings) => {
-        setSettings(fetchedSettings);
+        setSettings((prev) => ({ ...prev, ...fetchedSettings }));
         setLoading(false);
       })
       .catch((err) => {
@@ -51,67 +90,123 @@ export const GeneralSettings = memo(({ user }) => {
       });
   }, []);
 
-  useEffect(() => {
-    if (!loading) {
-      saveSettings(settings).catch((error) => {
-        console.error("Failed to autosave settings", error);
-      });
-    }
-  }, [settings, loading]);
-
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
-  const handleMailSettingChange = (e) => {
-    const { name, value } = e.target;
-    setSettings((prev) => ({
-      ...prev,
-      mail: {
-        ...prev.mail,
-        ...(name.startsWith("smtp.")
-          ? {
-              smtp: {
-                ...prev.mail.smtp,
-                [name.split(".")[1]]: value,
-              },
-            }
-          : { [name]: value }),
-      },
-    }));
-  };
-
-  const handleMailEnabledChange = (enabled) => {
-    setSettings((prev) => ({
-      ...prev,
-      mail: { ...prev.mail, enabled },
-    }));
-  };
-
-  const handleImageUpload = async (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const formData = new FormData();
-      formData.append("image", file);
-
-      try {
-        const response = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
+  const saveSettingsToServer = useCallback(
+    debounce((newSettings) => {
+      saveSettings(newSettings)
+        .then(() => {
+          setSettingsSaved(true);
+          setTimeout(() => setSettingsSaved(false), 100); // Reset after a short delay
+        })
+        .catch((error) => {
+          console.error("Failed to save settings", error);
         });
+    }, 500),
+    [],
+  );
 
-        if (response.ok) {
-          const result = await response.json();
-          console.log("Upload successful:", result);
-          // Handle successful upload (e.g., show success message, update UI)
-        } else {
-          console.error("Upload failed");
-          // Handle error (e.g., show error message)
+  const handleSettingChange = useCallback(
+    (newSettings) => {
+      setSettings(newSettings);
+      saveSettingsToServer(newSettings);
+    },
+    [saveSettingsToServer],
+  );
+
+  const handleMailSettingChange = useCallback(
+    (e) => {
+      const { name, value } = e.target;
+      setSettings((prev) => {
+        const newSettings = {
+          ...prev,
+          mail: {
+            ...prev.mail,
+            ...(name.startsWith("smtp.")
+              ? {
+                  smtp: {
+                    ...prev.mail.smtp,
+                    [name.split(".")[1]]: value,
+                  },
+                }
+              : { [name]: value }),
+          },
+        };
+        saveSettingsToServer(newSettings);
+        return newSettings;
+      });
+    },
+    [saveSettingsToServer],
+  );
+
+  const handleMailEnabledChange = useCallback(
+    (enabled) => {
+      setSettings((prev) => {
+        const newSettings = {
+          ...prev,
+          mail: { ...prev.mail, enabled },
+        };
+        saveSettingsToServer(newSettings);
+        return newSettings;
+      });
+    },
+    [saveSettingsToServer],
+  );
+
+  const handleImageUpload = useCallback(
+    async (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const formData = new FormData();
+        formData.append("image", file);
+
+        try {
+          const response = await fetch("/api/upload", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            console.log("Upload successful:", result);
+
+            // Set logoUpdated to true
+            debouncedUpdateNameAndLogo(debouncedNameAndLogo.name, true);
+
+            // After a short delay, set logoUpdated back to false
+            setTimeout(() => {
+              debouncedUpdateNameAndLogo(debouncedNameAndLogo.name, false);
+            }, 1000);
+          } else {
+            console.error("Upload failed");
+          }
+        } catch (error) {
+          console.error("Error uploading file:", error);
         }
-      } catch (error) {
-        console.error("Error uploading file:", error);
-        // Handle error (e.g., show error message)
       }
-    }
-  };
+    },
+    [debouncedUpdateNameAndLogo, debouncedNameAndLogo.name],
+  );
+
+  const handleNameChange = useCallback(
+    (e) => {
+      const newName = e.target.value;
+      setSettings((prev) => {
+        const newSettings = {
+          ...prev,
+          name: newName,
+        };
+        saveSettingsToServer(newSettings);
+        debouncedUpdateNameAndLogo(newName, debouncedNameAndLogo.logoUpdated);
+        return newSettings;
+      });
+    },
+    [
+      saveSettingsToServer,
+      debouncedUpdateNameAndLogo,
+      debouncedNameAndLogo.logoUpdated,
+    ],
+  );
+
+  if (error) return <div>{error}</div>;
 
   return (
     <div className="flex flex-col min-h-screen max-w-7xl mx-auto w-full p-4">
@@ -122,6 +217,7 @@ export const GeneralSettings = memo(({ user }) => {
           { value: "manage/services", label: "Services" },
           { value: "manage/users", label: "Users" },
         ]}
+        key={`${debouncedNameAndLogo.name}-${debouncedNameAndLogo.logoUpdated}`}
       />
       <Card className="w-full max-w-4xl mx-auto p-4 my-10">
         <CardHeader>
@@ -131,21 +227,13 @@ export const GeneralSettings = memo(({ user }) => {
               <CardTitle className="text-2xl">General</CardTitle>
             </div>
           </div>
-          <CardDescription>
-            Manage your general settings here -{" "}
-            <small className="text-muted-foreground">
-              (refresh to see changes)
-            </small>
-          </CardDescription>
+          <CardDescription>Manage your general settings here</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div className="flex flex-col">
               <Label htmlFor="logoUpload" className="mb-2">
-                Application Logo{" "}
-                <small className="text-muted-foreground">
-                  (requires a restart to take effect)
-                </small>
+                Application Logo
               </Label>
               <input
                 id="logoUpload"
@@ -156,7 +244,6 @@ export const GeneralSettings = memo(({ user }) => {
               />
               <Button
                 variant="secondary"
-                id="logoUpload"
                 onClick={() => document.getElementById("logoUpload").click()}
               >
                 Set Image
@@ -169,12 +256,7 @@ export const GeneralSettings = memo(({ user }) => {
               name="name"
               type="text"
               value={settings.name || ""}
-              onChange={(e) =>
-                setSettings((prev) => ({
-                  ...prev,
-                  name: e.target.value,
-                }))
-              }
+              onChange={handleNameChange}
             />
           </div>
         </CardContent>

@@ -1,6 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { Image } from "astro:assets";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { navigate } from "astro:transitions/client";
 import {
   Settings,
@@ -10,14 +9,12 @@ import {
   Moon,
   Sun,
   ScanFace,
-  LogOut,
   CircleDashed,
 } from "lucide-react";
 import {
   Drawer,
   DrawerClose,
   DrawerContent,
-  DrawerDescription,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
@@ -30,18 +27,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
   NavigationMenu,
-  NavigationMenuContent,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
 import yaml from "js-yaml";
@@ -49,107 +43,73 @@ import yaml from "js-yaml";
 export function HeaderNav({ user = null, tabs = [] }) {
   const [config, setConfig] = useState(null);
   const [email, setEmail] = useState(user?.email || "");
+  const [logoUrl, setLogoUrl] = useState("/logo.png");
   const [subscriptionStatus, setSubscriptionStatus] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
   const [isToggled, setToggle] = useState(false);
 
-  useEffect(() => {
-    fetch("/api/settings")
-      .then((response) => response.text())
-      .then((data) => {
-        try {
-          const parsedSettings = yaml.load(data);
-          setConfig(parsedSettings);
-        } catch (e) {
-          console.error("Error parsing YAML:", e);
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching settings:", error);
-      });
+  const fetchConfig = useCallback(async () => {
+    try {
+      const response = await fetch("/api/settings");
+      const data = await response.text();
+      const parsedSettings = yaml.load(data);
+      setConfig(parsedSettings);
+    } catch (error) {
+      console.error("Error fetching settings:", error);
+    }
+  }, []);
 
-    // Theme toggle initialization
+  const fetchLogo = useCallback(async () => {
+    try {
+      const response = await fetch("/api/upload");
+      if (!response.ok) throw new Error("Failed to fetch logo");
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      setLogoUrl(url);
+    } catch (error) {
+      console.error("Error fetching logo:", error);
+      setLogoUrl("/logo.png");
+    }
+  }, []);
+
+  const initializeTheme = useCallback(() => {
     const savedTheme = localStorage.getItem("theme");
-    if (savedTheme) {
-      const isDark = savedTheme === "dark";
-      setToggle(isDark);
-      document.documentElement.classList.toggle("dark", isDark);
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)",
+    ).matches;
+    const isDark = savedTheme ? savedTheme === "dark" : prefersDark;
+    setToggle(isDark);
+    if (isDark) {
+      document.documentElement.classList.add("dark");
     } else {
-      const prefersDark = window.matchMedia(
-        "(prefers-color-scheme: dark)",
-      ).matches;
-      setToggle(prefersDark);
-      document.documentElement.classList.toggle("dark", prefersDark);
+      document.documentElement.classList.remove("dark");
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("theme", isToggled ? "dark" : "light");
-    document.documentElement.classList.toggle("dark", isToggled);
-  }, [isToggled]);
+    fetchLogo();
+    fetchConfig();
+    initializeTheme();
+  }, [fetchLogo, fetchConfig, initializeTheme]);
 
   useEffect(() => {
-    if (email) {
-      checkSubscriptionStatus(email);
+    localStorage.setItem("theme", isToggled ? "dark" : "light");
+    if (isToggled) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
     }
-  }, [email]);
+  }, [isToggled]);
 
-  const handleSubscribeUnsubscribe = async () => {
+  const checkSubscriptionStatus = useCallback(async (email) => {
+    if (!email) return;
     try {
-      if (!email) {
-        console.error("Email is not defined.");
-        return;
-      }
-
-      const method = subscriptionStatus?.subscribed ? "DELETE" : "POST";
-      const response = await fetch("/api/subscribe", {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(
-          `Request failed with status ${response.status}: ${errorText}`,
-        );
-        return;
-      }
-
-      // Update subscription status after action
-      await checkSubscriptionStatus(email);
-    } catch (error) {
-      console.error("Error updating subscription status:", error);
-    }
-  };
-
-  const checkSubscriptionStatus = async (email) => {
-    try {
-      if (!email) {
-        console.error("Email is required for checking subscription status.");
-        return;
-      }
-
       const response = await fetch(
         `/api/subscribe?email=${encodeURIComponent(email)}`,
       );
-
-      if (!response.ok) {
-        const text = await response.text();
-        console.error("Error checking subscription status:", text);
-        return;
-      }
-
+      if (!response.ok) throw new Error("Error checking subscription status");
       const data = await response.json();
-
-      if (data.error) {
-        console.error("Error:", data.error);
-        return;
-      }
-
+      if (data.error) throw new Error(data.error);
       setSubscriptionStatus({
         subscribed: data.subscribed,
         subscription_date: data.subscribed
@@ -159,11 +119,51 @@ export function HeaderNav({ user = null, tabs = [] }) {
     } catch (error) {
       console.error("Error checking subscription status:", error);
     }
-  };
+  }, []);
 
-  if (!config) {
-    return null; // or a loading indicator
-  }
+  useEffect(() => {
+    if (email) checkSubscriptionStatus(email);
+  }, [email, checkSubscriptionStatus]);
+
+  const handleSubscribeUnsubscribe = useCallback(async () => {
+    if (!email) {
+      console.error("Email is not defined.");
+      return;
+    }
+    try {
+      const method = subscriptionStatus?.subscribed ? "DELETE" : "POST";
+      const response = await fetch("/api/subscribe", {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (!response.ok)
+        throw new Error(`Request failed with status ${response.status}`);
+      await checkSubscriptionStatus(email);
+    } catch (error) {
+      console.error("Error updating subscription status:", error);
+    }
+  }, [email, subscriptionStatus, checkSubscriptionStatus]);
+
+  const toggleTheme = useCallback(() => setToggle((prev) => !prev), []);
+
+  const memoizedTabs = useMemo(
+    () =>
+      tabs.map((tab) => (
+        <NavigationMenuItem key={tab.value}>
+          <NavigationMenuLink asChild>
+            <Button
+              variant="ghost"
+              className={`text-foreground ${tab.active ? "bg-secondary" : ""}`}
+              onClick={() => navigate(`/${tab.value}`)}
+            >
+              {tab.label}
+            </Button>
+          </NavigationMenuLink>
+        </NavigationMenuItem>
+      )),
+    [tabs],
+  );
 
   return (
     <header className="shadow-inner w-[100%] bg-secondary/50 backdrop-blur-md bg-opacity-50 lg:max-w-screen-xl top-5 mx-auto sticky border border-secondary z-40 rounded-2xl flex justify-between items-center p-2">
@@ -222,13 +222,13 @@ export function HeaderNav({ user = null, tabs = [] }) {
           className="font-bold text-lg text-primary flex items-center"
         >
           <img
-            src="/logo.png"
+            src={logoUrl}
             alt="Logo"
             width="30"
             height="30"
             className="mx-2"
           />
-          {config.name}
+          {config?.name}
         </a>
         <Drawer>
           <DrawerTrigger asChild>
@@ -238,7 +238,7 @@ export function HeaderNav({ user = null, tabs = [] }) {
           </DrawerTrigger>
           <DrawerContent>
             <DrawerHeader>
-              <DrawerTitle>{config.name}</DrawerTitle>
+              <DrawerTitle>{config?.name}</DrawerTitle>
             </DrawerHeader>
             <div className="p-4">
               {tabs.map((tab) => (
@@ -256,7 +256,7 @@ export function HeaderNav({ user = null, tabs = [] }) {
               ))}
               <Separator className="my-2" />
               <div className="flex flex-col">
-                {config.mail.enabled && (
+                {config?.mail.enabled && (
                   <Button
                     variant="ghost"
                     className="w-full justify-start mb-2"
@@ -311,7 +311,11 @@ export function HeaderNav({ user = null, tabs = [] }) {
                     */}
                   </>
                 ) : (
-                  <Button variant="ghost" className="w-full justify-start">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start"
+                    onClick={() => navigate("/login")}
+                  >
                     <ScanFace className="h-5 w-5 mr-2" />
                     Login
                   </Button>
@@ -335,34 +339,28 @@ export function HeaderNav({ user = null, tabs = [] }) {
             className="font-bold text-lg text-primary flex items-center"
           >
             <img
-              src="/logo.png"
+              src={logoUrl}
               alt="Logo"
               width="30"
               height="30"
               className="mx-2"
             />
-            {config.name}
+            {config?.name}
           </a>
 
           <div className="flex items-center space-x-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setToggle(!isToggled)}
-            >
+            <Button variant="ghost" size="icon" onClick={toggleTheme}>
               {isToggled ? (
                 <Moon className="h-5 w-5 text-primary" />
               ) : (
                 <Sun className="h-5 w-5 text-primary" />
               )}
             </Button>
-            {config.mail.enabled && (
+            {config?.mail.enabled && (
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => {
-                  setDialogOpen(true);
-                }}
+                onClick={() => setDialogOpen(true)}
               >
                 <Bell className="h-5 w-5 text-primary" />
               </Button>
@@ -370,13 +368,7 @@ export function HeaderNav({ user = null, tabs = [] }) {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => {
-                if (user) {
-                  navigate("/manage");
-                } else {
-                  navigate("/login");
-                }
-              }}
+              onClick={() => navigate(user ? "/manage" : "/login")}
             >
               {user ? (
                 <Settings className="h-5 w-5 text-primary" />
@@ -390,21 +382,7 @@ export function HeaderNav({ user = null, tabs = [] }) {
         <div className="absolute left-1/2 transform -translate-x-1/2">
           <NavigationMenu>
             <NavigationMenuList className="flex space-x-2">
-              {tabs.map((tab) => (
-                <NavigationMenuItem key={tab.value}>
-                  <NavigationMenuLink asChild>
-                    <Button
-                      variant="ghost"
-                      className={`text-foreground ${tab.active ? "bg-secondary" : ""}`}
-                      onClick={() => {
-                        navigate(`/${tab.value}`);
-                      }}
-                    >
-                      {tab.label}
-                    </Button>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-              ))}
+              {memoizedTabs}
             </NavigationMenuList>
           </NavigationMenu>
         </div>

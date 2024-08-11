@@ -272,12 +272,6 @@ export const Incidents = memo(({ user }) => {
     );
   }
 
-  if (statusData === null || incidentsData === null) {
-    return (
-      <div className="flex items-center justify-center h-full">No Data</div>
-    );
-  }
-
   const handleOpenCreateDialog = () => {
     setIsCreating(true);
     setFormData({ title: "", description: "", type: "", services: "" });
@@ -486,23 +480,23 @@ export const Incidents = memo(({ user }) => {
         ]}
       />
       <section className="text-center my-12 cursor-default">
-        {statusData.overallStatus === "online" ? (
+        {!statusData || statusData.overallStatus === "online" ? (
           <div className="flex flex-col items-center">
-            <StatusIconMap status={statusData.overallStatus} size="3rem" />
+            <StatusIconMap status="online" size="3rem" />
             <h1 className="text-primary font-bold text-4xl my-4">
               All services are online
             </h1>
           </div>
         ) : (
           <div className="flex flex-col items-center">
-            <StatusIconMap status={statusData.overallStatus} size="3rem" />
+            <StatusIconMap status={statusData?.overallStatus} size="3rem" />
             <h1 className="text-primary font-bold text-4xl my-4">
               Some services are having issues
             </h1>
           </div>
         )}
         <p className="text-md mb-6 text-muted-foreground">
-          Last updated {formatter.format(statusData.lastUpdate)}
+          Last updated {formatter.format(statusData?.lastUpdate)}
         </p>
         {canCreate && (
           <div className="flex justify-end mb-4">
@@ -516,7 +510,7 @@ export const Incidents = memo(({ user }) => {
             </Button>
           </div>
         )}
-        {incidentsData.length === 0 && (
+        {incidentsData?.length === 0 && (
           <div className="flex flex-col items-center my-20">
             <h2 className="text-2xl font-bold text-primary">
               No incidents to display
@@ -527,7 +521,7 @@ export const Incidents = memo(({ user }) => {
           </div>
         )}
         <Accordion type="single" collapsible className="w-full space-y-4">
-          {incidentsData.map((incident) => {
+          {incidentsData?.map((incident) => {
             const isOngoing = incident.resolved_timestamp
               ? incident.resolved_timestamp > Date.now()
               : true;
@@ -594,7 +588,7 @@ export const Incidents = memo(({ user }) => {
                           .map((serviceUrl) => {
                             if (!serviceUrl.trim()) return null;
 
-                            const service = statusData.categories
+                            const service = statusData?.categories
                               .flatMap((category) => category.services)
                               .find((s) => s.url === serviceUrl.trim());
 
