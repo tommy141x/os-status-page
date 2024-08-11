@@ -58,7 +58,10 @@ const middleware: MiddlewareResponseHandler = async (context, next) => {
     } catch (error) {}
   }
 
-  if (currentPath === "/settings" && !(context.locals.user?.permLevel === 0)) {
+  if (
+    currentPath.startsWith("/manage") &&
+    !(context.locals.user?.permLevel === 0)
+  ) {
     db.close();
     return Response.redirect(new URL("/", context.url), 302);
   }

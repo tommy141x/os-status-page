@@ -1,0 +1,9 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { UsersSettings } from "@/components/UsersSettings";
+const { user } = Astro.locals;
+---
+
+<Layout title="Settings">
+    <UsersSettings user={user} client:load />
+</Layout>

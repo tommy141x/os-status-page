@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ThemeToggle } from "@/components/themeToggle";
 
 export function SetupForm() {
   const [email, setEmail] = useState("");
@@ -53,7 +52,6 @@ export function SetupForm() {
             style={{ fontSize: "1.5rem" }}
           >
             <CardTitle className="text-2xl">Welcome</CardTitle>
-            <ThemeToggle />
           </div>
           <CardDescription>
             Please create an account to continue

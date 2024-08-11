@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import {
   Card,
   CardContent,
@@ -16,7 +16,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
-import { PersonIcon, CrossCircledIcon, GearIcon } from "@radix-ui/react-icons";
+import { CircleUserRound, Trash2, Settings } from "lucide-react";
+import { fetchSettings, saveSettings } from "@/lib/client-utils";
 import {
   Dialog,
   DialogContent,
@@ -36,6 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { HeaderNav } from "@/components/headerNav";
 
 // Helper function for dialogs
 function GenericDialog({ title, description, content, onClose, onSave }) {
@@ -44,7 +46,7 @@ function GenericDialog({ title, description, content, onClose, onSave }) {
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <div className="flex items-center">
-            <GearIcon className="mr-2" />
+            <Settings className="mr-2" />
             <DialogTitle>{title}</DialogTitle>
           </div>
           <DialogDescription>{description}</DialogDescription>
@@ -79,7 +81,21 @@ function InputField({ label, id, name, value, onChange, type = "text" }) {
   );
 }
 
-export function UsersSettings() {
+const fetchUsers = async (setUsers) => {
+  try {
+    const response = await fetch("/api/users");
+    if (!response.ok) throw new Error("Failed to fetch users");
+    const data = await response.json();
+    setUsers(data);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+  }
+};
+
+export const UsersSettings = memo(({ user }) => {
+  const [settings, setSettings] = useState({ categories: [], mail: {} });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [users, setUsers] = useState([]);
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
   const [newUser, setNewUser] = useState({
@@ -88,16 +104,29 @@ export function UsersSettings() {
     permLevel: "1", // Default to Manager
   });
 
-  const fetchUsers = async () => {
-    try {
-      const response = await fetch("/api/users");
-      if (!response.ok) throw new Error("Failed to fetch users");
-      const data = await response.json();
-      setUsers(data);
-    } catch (error) {
-      console.error("Error fetching users:", error);
+  useEffect(() => {
+    fetchSettings()
+      .then((fetchedSettings) => {
+        setSettings(fetchedSettings);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError("Failed to fetch settings");
+        setLoading(false);
+      });
+  }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      saveSettings(settings).catch((error) => {
+        console.error("Failed to autosave settings", error);
+      });
     }
-  };
+  }, [settings, loading]);
+
+  useEffect(() => {
+    fetchUsers(setUsers);
+  }, []);
 
   const handleAddUser = () => {
     setIsAddUserDialogOpen(true);
@@ -118,7 +147,7 @@ export function UsersSettings() {
       });
       if (!response.ok) throw new Error("Failed to add user");
       setIsAddUserDialogOpen(false);
-      fetchUsers(); // Refresh the user list
+      fetchUsers(setUsers); // Refresh the user list
       setNewUser({ email: "", password: "", permLevel: "1" }); // Reset form
     } catch (error) {
       console.error("Error adding user:", error);
@@ -139,7 +168,7 @@ export function UsersSettings() {
         }),
       });
       if (!response.ok) throw new Error("Failed to update user role");
-      fetchUsers(); // Refresh the user list
+      fetchUsers(setUsers); // Refresh the user list
     } catch (error) {
       console.error("Error updating user role:", error);
     }
@@ -163,19 +192,17 @@ export function UsersSettings() {
 
       if (result.success) {
         // User successfully deleted, refresh the user list
-        fetchUsers();
+        fetchUsers(setUsers);
       } else {
         throw new Error(result.error || "Failed to delete user");
       }
     } catch (error) {
       console.error("Error deleting user:", error);
-      // You might want to show an error message to the user here
     }
   };
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
 
   const addUserDialogContent = (
     <>
@@ -220,22 +247,32 @@ export function UsersSettings() {
   );
 
   return (
-    <div className="flex-grow overflow-auto">
+    <div className="flex flex-col min-h-screen max-w-7xl mx-auto w-full p-4">
+      <HeaderNav
+        user={user}
+        tabs={[
+          { value: "manage", label: "General" },
+          { value: "manage/services", label: "Services" },
+          { value: "manage/users", label: "Users", active: true },
+        ]}
+      />
       <div className="flex-grow flex items-center justify-center">
         <Card className="w-full max-w-4xl mx-auto p-4 my-10">
           <CardHeader>
             <div className="flex justify-between items-center">
               <div className="flex items-center">
-                <PersonIcon className="mr-1.5 w-5 h-5" />
+                <CircleUserRound className="mr-1.5 w-6 h-6" />
                 <CardTitle className="text-2xl">Users</CardTitle>
               </div>
               <Button variant="secondary" onClick={handleAddUser}>
                 Add User
               </Button>
             </div>
-            <CardDescription>Manage and add your users here.</CardDescription>
             <CardDescription>
-              After adding a user, they can login at /login{" "}
+              Manage and add your users here -{" "}
+              <small className="text-muted-foreground">
+                After adding a user, they can login at <b>/login</b>
+              </small>
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -277,7 +314,7 @@ export function UsersSettings() {
                         onClick={() => handleDeleteUser(user.id)}
                         disabled={user.id === 1}
                       >
-                        <CrossCircledIcon />
+                        <Trash2 />
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -299,4 +336,4 @@ export function UsersSettings() {
       )}
     </div>
   );
-}
+});

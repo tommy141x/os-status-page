@@ -1,6 +1,28 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+"use client";
+import React, { useState, useEffect } from "react";
+import { Image } from "astro:assets";
+import { navigate } from "astro:transitions/client";
+import {
+  Settings,
+  Bell,
+  Menu,
+  CircleUserRound,
+  Moon,
+  Sun,
+  ScanFace,
+  LogOut,
+  CircleDashed,
+} from "lucide-react";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 import {
   Dialog,
   DialogContent,
@@ -12,20 +34,25 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CheckCircledIcon, GearIcon, Share1Icon } from "@radix-ui/react-icons";
-import { ThemeToggle } from "@/components/themeToggle";
+import { Separator } from "@/components/ui/separator";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+import { Button } from "@/components/ui/button";
 import yaml from "js-yaml";
 
-export function HeaderNav({
-  user = null,
-  tabs = [],
-  showSettings = true,
-  showUpdates = true,
-}) {
+export function HeaderNav({ user = null, tabs = [] }) {
   const [config, setConfig] = useState(null);
   const [email, setEmail] = useState(user?.email || "");
   const [subscriptionStatus, setSubscriptionStatus] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isToggled, setToggle] = useState(false);
 
   useEffect(() => {
     fetch("/api/settings")
@@ -41,7 +68,26 @@ export function HeaderNav({
       .catch((error) => {
         console.error("Error fetching settings:", error);
       });
+
+    // Theme toggle initialization
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+      const isDark = savedTheme === "dark";
+      setToggle(isDark);
+      document.documentElement.classList.toggle("dark", isDark);
+    } else {
+      const prefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)",
+      ).matches;
+      setToggle(prefersDark);
+      document.documentElement.classList.toggle("dark", prefersDark);
+    }
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem("theme", isToggled ? "dark" : "light");
+    document.documentElement.classList.toggle("dark", isToggled);
+  }, [isToggled]);
 
   useEffect(() => {
     if (email) {
@@ -120,12 +166,16 @@ export function HeaderNav({
   }
 
   return (
-    <div className="flex flex-col w-full h-screen">
+    <header className="shadow-inner w-[100%] bg-secondary/50 backdrop-blur-md bg-opacity-50 lg:max-w-screen-xl top-5 mx-auto sticky border border-secondary z-40 rounded-2xl flex justify-between items-center p-2">
+      {/* Subscription Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent
+          className="sm:max-w-[425px]"
+          aria-describedby="dialog-description"
+        >
           <DialogHeader>
             <DialogTitle>Subscribe for Updates</DialogTitle>
-            <DialogDescription>
+            <DialogDescription id="dialog-description">
               Enter your email to subscribe to status updates.
             </DialogDescription>
           </DialogHeader>
@@ -164,61 +214,199 @@ export function HeaderNav({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <Tabs defaultValue={tabs[0]?.value} className="flex flex-col flex-grow">
-        <div className="w-full bg-background shadow-md">
-          <div className="w-full px-4 md:px-8 flex items-center justify-between h-16">
-            <a href="/" className="flex items-center space-x-2 text-primary">
-              <CheckCircledIcon className="hidden md:inline h-5 w-5 text-primary" />
-              <p className="hidden md:inline text-lg font-bold whitespace-nowrap text-primary">
-                {config.name}
-              </p>
-            </a>
-            {tabs.length > 1 && (
-              <TabsList className="flex border-0 absolute left-1/2 transform -translate-x-1/2 bg-transparent">
-                {tabs.map((tab) => (
-                  <TabsTrigger
-                    key={tab.value}
-                    style={{ fontSize: "1rem" }} // Adjust font size here
-                    className="px-6 py-2 data-[state=active]:bg-secondary hover:bg-muted hover:text-primary mx-1" // Hover color change here
-                    value={tab.value}
-                  >
-                    {tab.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            )}
-            <div className="flex items-center space-x-1 md:space-x-2">
-              <div className="text-xl mx-1 flex items-center">
-                <ThemeToggle />
-              </div>
-              {showSettings && user?.permLevel === 0 && (
-                <a href="/settings">
-                  <Button variant="secondary" size="icon">
-                    <GearIcon className="h-4 w-4" />
-                  </Button>
-                </a>
-              )}
-              {showUpdates && config.mail.enabled && (
+
+      {/* Mobile Menu Trigger and Logo */}
+      <div className="md:hidden flex items-center justify-between w-full">
+        <a
+          href="/"
+          className="font-bold text-lg text-primary flex items-center"
+        >
+          <img
+            src="/logo.png"
+            alt="Logo"
+            width="30"
+            height="30"
+            className="mx-2"
+          />
+          {config.name}
+        </a>
+        <Drawer>
+          <DrawerTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <Menu className="h-5 w-5 text-primary" />
+            </Button>
+          </DrawerTrigger>
+          <DrawerContent>
+            <DrawerHeader>
+              <DrawerTitle>{config.name}</DrawerTitle>
+            </DrawerHeader>
+            <div className="p-4">
+              {tabs.map((tab) => (
                 <Button
-                  variant="secondary"
-                  className="md:space-x-1 flex md:items-center"
-                  onClick={() => setDialogOpen(true)}
+                  key={tab.value}
+                  variant="ghost"
+                  className="w-full justify-start mb-2"
+                  onClick={() => {
+                    navigate(`/${tab.value}`);
+                  }}
                 >
-                  <span className="hidden md:inline">Get Updates</span>
-                  <Share1Icon className="h-4 w-4" />
+                  <CircleDashed className="h-5 w-5 mr-2" />
+                  {tab.label}
                 </Button>
-              )}
+              ))}
+              <Separator className="my-2" />
+              <div className="flex flex-col">
+                {config.mail.enabled && (
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start mb-2"
+                    onClick={() => {
+                      setDialogOpen(true);
+                    }}
+                  >
+                    <Bell className="h-5 w-5 mr-2" />
+                    Subscribe/Updates
+                  </Button>
+                )}
+              </div>
+              <div className="flex flex-col">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start mb-2"
+                  onClick={() => setToggle(!isToggled)}
+                >
+                  {isToggled ? (
+                    <Sun className="h-5 w-5 mr-2" />
+                  ) : (
+                    <Moon className="h-5 w-5 mr-2" />
+                  )}
+                  {isToggled ? <p>Light Mode</p> : <p>Dark Mode</p>}
+                </Button>
+              </div>
+
+              <Separator className="mb-2" />
+              <div className="flex flex-col">
+                {user ? (
+                  <>
+                    {user.permLevel === 0 && (
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start"
+                        asChild
+                      >
+                        <a href="/settings" className="flex items-center">
+                          <Settings className="h-5 w-5 mr-2" />
+                          Manage
+                        </a>
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start mt-2"
+                    >
+                      <LogOut className="h-5 w-5 mr-2" />
+                      Logout
+                    </Button>
+                  </>
+                ) : (
+                  <Button variant="ghost" className="w-full justify-start">
+                    <ScanFace className="h-5 w-5 mr-2" />
+                    Login
+                  </Button>
+                )}
+              </div>
             </div>
+            <DrawerFooter>
+              <DrawerClose asChild>
+                <Button variant="outline">Close</Button>
+              </DrawerClose>
+            </DrawerFooter>
+          </DrawerContent>
+        </Drawer>
+      </div>
+
+      {/* Desktop Navigation */}
+      <div className="hidden md:flex items-center w-full">
+        <div className="flex items-center justify-between w-full">
+          <a
+            href="/"
+            className="font-bold text-lg text-primary flex items-center"
+          >
+            <img
+              src="/logo.png"
+              alt="Logo"
+              width="30"
+              height="30"
+              className="mx-2"
+            />
+            {config.name}
+          </a>
+
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setToggle(!isToggled)}
+            >
+              {isToggled ? (
+                <Moon className="h-5 w-5 text-primary" />
+              ) : (
+                <Sun className="h-5 w-5 text-primary" />
+              )}
+            </Button>
+            {config.mail.enabled && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  setDialogOpen(true);
+                }}
+              >
+                <Bell className="h-5 w-5 text-primary" />
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                if (user) {
+                  navigate("/manage");
+                } else {
+                  navigate("/login");
+                }
+              }}
+            >
+              {user ? (
+                <Settings className="h-5 w-5 text-primary" />
+              ) : (
+                <CircleUserRound className="h-5 w-5 text-primary" />
+              )}
+            </Button>
           </div>
         </div>
-        <div className="flex-grow overflow-hidden">
-          {tabs.map((tab) => (
-            <TabsContent key={tab.value} value={tab.value} className="h-full">
-              {tab.content}
-            </TabsContent>
-          ))}
+
+        <div className="absolute left-1/2 transform -translate-x-1/2">
+          <NavigationMenu>
+            <NavigationMenuList className="flex space-x-2">
+              {tabs.map((tab) => (
+                <NavigationMenuItem key={tab.value}>
+                  <NavigationMenuLink asChild>
+                    <Button
+                      variant="ghost"
+                      className={`text-foreground ${tab.active ? "bg-secondary" : ""}`}
+                      onClick={() => {
+                        navigate(`/${tab.value}`);
+                      }}
+                    >
+                      {tab.label}
+                    </Button>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+              ))}
+            </NavigationMenuList>
+          </NavigationMenu>
         </div>
-      </Tabs>
-    </div>
+      </div>
+    </header>
   );
 }

@@ -1,0 +1,10 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { Incidents } from "@/components/Incidents";
+
+const { user } = Astro.locals;
+---
+
+<Layout title="Incidents Page">
+    <Incidents user={user} client:load />
+</Layout>

@@ -1,5 +1,6 @@
 // Services.tsx
-import { memo } from "react";
+import { useState, useCallback, useEffect, memo } from "react";
+import { HeaderNav } from "@/components/headerNav";
 import { Button } from "@/components/ui/button";
 import {
   HoverCard,
@@ -25,14 +26,14 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 
+import { ShadowIcon } from "@radix-ui/react-icons";
 import {
-  GearIcon,
-  CrossCircledIcon,
-  CheckCircledIcon,
-  ShadowIcon,
-  MinusCircledIcon,
-  QuestionMarkCircledIcon,
-} from "@radix-ui/react-icons";
+  Settings,
+  Ban,
+  CircleCheck,
+  CircleMinus,
+  CircleHelp,
+} from "lucide-react";
 
 const getStatusColor = (status, isText) => {
   switch (status) {
@@ -63,19 +64,19 @@ const StatusIconMap = ({ status, size }) => {
 
   switch (status) {
     case "online":
-      Icon = CheckCircledIcon;
+      Icon = CircleCheck;
       colorClass = "text-green-500";
       break;
     case "issues":
-      Icon = MinusCircledIcon;
+      Icon = CircleMinus;
       colorClass = "text-yellow-500";
       break;
     case "offline":
-      Icon = CrossCircledIcon;
+      Icon = Ban;
       colorClass = "text-red-500";
       break;
     default:
-      Icon = QuestionMarkCircledIcon;
+      Icon = CircleHelp;
       colorClass = "text-gray-500";
       break;
   }
@@ -202,8 +203,61 @@ const IncidentCard = ({ incident, statusData }) => {
   );
 };
 
-export const Services = memo(({ statusData, incidentsData }) => {
-  if (!statusData) return null;
+export const Services = memo(({ user }) => {
+  const [statusData, setStatusData] = useState(null);
+  const [incidentsData, setIncidentsData] = useState([]);
+  const [error, setError] = useState(null);
+
+  const fetchStatusData = useCallback(async () => {
+    try {
+      const response = await fetch("/api/status");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setStatusData(data);
+    } catch (e) {
+      setError(e.message);
+    }
+  }, []);
+
+  const fetchIncidentsData = useCallback(async () => {
+    try {
+      const response = await fetch("/api/incidents");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setIncidentsData(data);
+    } catch (e) {
+      setError(e.message);
+    }
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      await Promise.all([fetchStatusData(), fetchIncidentsData()]);
+    };
+
+    fetchData();
+    const intervalId = setInterval(fetchData, 30000);
+
+    return () => clearInterval(intervalId);
+  }, [fetchStatusData, fetchIncidentsData]);
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        Error: {error}
+      </div>
+    );
+  }
+
+  if (statusData === null || incidentsData === null) {
+    return (
+      <div className="flex items-center justify-center h-full">No Data</div>
+    );
+  }
 
   const allDates = new Set();
   statusData.categories.forEach((category) => {
@@ -279,8 +333,24 @@ export const Services = memo(({ statusData, incidentsData }) => {
     chartData.push(dataPoint);
   });
 
+  const XAxisWrapper = ({ children, ...props }) => (
+    <XAxis {...props}>{children}</XAxis>
+  );
+
+  const YAxisWrapper = ({ children, ...props }) => (
+    <YAxis {...props}>{children}</YAxis>
+  );
+
   return (
-    <div className="flex-grow p-4 overflow-auto max-w-7xl mx-auto w-full">
+    <div className="flex flex-col min-h-screen max-w-7xl mx-auto w-full p-4">
+      <HeaderNav
+        user={user}
+        tabs={[
+          { value: "", label: "Status", active: true },
+          { value: "incidents", label: "Incidents" },
+        ]}
+      />
+
       <section className="text-center my-12 cursor-default">
         {statusData.overallStatus === "online" ? (
           <div className="flex flex-col items-center">
@@ -398,7 +468,7 @@ export const Services = memo(({ statusData, incidentsData }) => {
           </CardContent>
         </Card>
       ))}
-      <Card className="bg-secondary mb-8 h-[300px] flex flex-col overflow-hidden">
+      <Card className="bg-secondary mb-6 h-[300px] flex flex-col">
         <CardHeader className="space-y-0 pb-0">
           <CardTitle className="flex items-baseline text-2xl tabular-nums">
             Response Times
@@ -425,8 +495,8 @@ export const Services = memo(({ statusData, incidentsData }) => {
               }}
               className="w-full h-full"
             >
-              <XAxis dataKey="date" hide />
-              <YAxis domain={["dataMin - 5", "dataMax + 2"]} hide />
+              <XAxisWrapper dataKey="date" hide />
+              <YAxisWrapper domain={["dataMin - 5", "dataMax + 2"]} hide />
               <defs>
                 {Object.values(series).map(({ dataKey, color }) => (
                   <linearGradient

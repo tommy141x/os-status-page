@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, memo } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+import { fetchSettings, saveSettings } from "@/lib/client-utils";
+import { HeaderNav } from "@/components/headerNav";
 import {
   Dialog,
   DialogContent,
@@ -26,12 +28,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  PlusIcon,
-  GearIcon,
-  CrossCircledIcon,
-  LapTimerIcon,
-} from "@radix-ui/react-icons";
+
+import { Trash2, Settings, ClockArrowUp, Plus } from "lucide-react";
 
 // Define response codes
 const responseCodes = [200, 201, 400, 404, 500];
@@ -43,7 +41,7 @@ function GenericDialog({ title, description, content, onClose, onSave }) {
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <div className="flex items-center">
-            <GearIcon className="mr-2" />
+            <Settings className="mr-2" />
             <DialogTitle>{title}</DialogTitle>
           </div>
           <DialogDescription>{description}</DialogDescription>
@@ -217,11 +215,37 @@ function CategoryDialog({ category, onClose, onSave, isNew }) {
   );
 }
 
-export function ServicesSettings({ settings, setSettings }) {
+export const ServicesSettings = memo(({ user }) => {
+  const [settings, setSettings] = useState({ categories: [], mail: {} });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [dialogType, setDialogType] = useState(null);
   const [selectedService, setSelectedService] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [editIndex, setEditIndex] = useState(null);
+
+  useEffect(() => {
+    fetchSettings()
+      .then((fetchedSettings) => {
+        setSettings(fetchedSettings);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setError("Failed to fetch settings");
+        setLoading(false);
+      });
+  }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      saveSettings(settings).catch((error) => {
+        console.error("Failed to autosave settings", error);
+      });
+    }
+  }, [settings, loading]);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
 
   const handleServiceSave = (updatedService) => {
     setSettings((prevSettings) => {
@@ -313,13 +337,21 @@ export function ServicesSettings({ settings, setSettings }) {
   };
 
   return (
-    <div className="flex-grow overflow-auto">
+    <div className="flex flex-col min-h-screen max-w-7xl mx-auto w-full p-4">
+      <HeaderNav
+        user={user}
+        tabs={[
+          { value: "manage", label: "General" },
+          { value: "manage/services", label: "Services", active: true },
+          { value: "manage/users", label: "Users" },
+        ]}
+      />
       <div className="flex-grow flex items-center justify-center">
         <Card className="w-full max-w-4xl mx-auto p-4 my-10">
           <CardHeader>
             <div className="flex justify-between items-center">
               <div className="flex items-center">
-                <LapTimerIcon className="mr-1.5 w-5 h-5" />
+                <ClockArrowUp className="mr-1.5 w-6 h-6" />
                 <CardTitle className="text-2xl">Services</CardTitle>
               </div>
               <Button variant="secondary" onClick={handleAddCategory}>
@@ -347,13 +379,13 @@ export function ServicesSettings({ settings, setSettings }) {
                           variant="outline"
                           onClick={() => handleEditCategory(categoryIndex)}
                         >
-                          <GearIcon />
+                          <Settings />
                         </Button>
                         <Button
                           variant="destructive"
                           onClick={() => handleRemoveCategory(categoryIndex)}
                         >
-                          <CrossCircledIcon />
+                          <Trash2 />
                         </Button>
                       </div>
                     </div>
@@ -385,7 +417,7 @@ export function ServicesSettings({ settings, setSettings }) {
                                     )
                                   }
                                 >
-                                  <GearIcon />
+                                  <Settings />
                                 </Button>
                                 <Button
                                   variant="destructive"
@@ -396,7 +428,7 @@ export function ServicesSettings({ settings, setSettings }) {
                                     )
                                   }
                                 >
-                                  <CrossCircledIcon />
+                                  <Trash2 />
                                 </Button>
                               </div>
                             </div>
@@ -409,7 +441,7 @@ export function ServicesSettings({ settings, setSettings }) {
                       onClick={() => handleAddService(category.name)}
                       className="w-full"
                     >
-                      <PlusIcon className="mr-2" /> Add Service
+                      <Plus className="mr-2" /> Add Service
                     </Button>
                   </CardContent>
                 </Card>
@@ -474,4 +506,4 @@ export function ServicesSettings({ settings, setSettings }) {
       </div>
     </div>
   );
-}
+});
