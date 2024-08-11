@@ -1,7 +1,7 @@
 {
   "name": "os-status-page",
   "type": "module",
-  "version": "v1.3.1",
+  "version": "v1.3.2",
   "scripts": {
     "dev": "bun scripts/start-dev.ts",
     "start": "bun scripts/start.ts",
