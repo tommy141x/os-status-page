@@ -142,7 +142,10 @@ export const GeneralSettings = memo(({ user }) => {
           <div className="space-y-4">
             <div className="flex flex-col">
               <Label htmlFor="logoUpload" className="mb-2">
-                Application Logo
+                Application Logo{" "}
+                <small className="text-muted-foreground">
+                  (requires a restart to take effect)
+                </small>
               </Label>
               <input
                 id="logoUpload"

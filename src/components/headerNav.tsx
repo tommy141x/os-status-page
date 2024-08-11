@@ -294,12 +294,13 @@ export function HeaderNav({ user = null, tabs = [] }) {
                         className="w-full justify-start"
                         asChild
                       >
-                        <a href="/settings" className="flex items-center">
+                        <a href="/manage" className="flex items-center">
                           <Settings className="h-5 w-5 mr-2" />
                           Manage
                         </a>
                       </Button>
                     )}
+                    {/*
                     <Button
                       variant="ghost"
                       className="w-full justify-start mt-2"
@@ -307,6 +308,7 @@ export function HeaderNav({ user = null, tabs = [] }) {
                       <LogOut className="h-5 w-5 mr-2" />
                       Logout
                     </Button>
+                    */}
                   </>
                 ) : (
                   <Button variant="ghost" className="w-full justify-start">
