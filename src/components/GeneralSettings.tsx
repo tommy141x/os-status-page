@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 import { Inbox, Settings, ImageUp } from "lucide-react";
-import { fetchSettings, saveSettings } from "@/lib/client-utils";
+import { fetchSettings, saveSettings, debounce } from "@/lib/client-utils";
 
 // Helper function for input fields
 function InputField({ label, id, name, value, onChange, type = "text" }) {
@@ -32,19 +32,6 @@ function InputField({ label, id, name, value, onChange, type = "text" }) {
       />
     </div>
   );
-}
-
-// Debounce function
-function debounce(func, wait) {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
 }
 
 export const GeneralSettings = memo(({ user }) => {

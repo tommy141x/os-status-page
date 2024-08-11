@@ -5,6 +5,7 @@ interface Props {
 
 const { title } = Astro.props;
 import { ViewTransitions } from "astro:transitions";
+import Favicon from "@/layouts/Favicon";
 import "@/styles/globals.css";
 ---
 
@@ -17,7 +18,7 @@ import "@/styles/globals.css";
             content="Stay updated with real-time information on the operational status and performance of our services. Our status page provides instant alerts on uptime, incidents, maintenance, and more, ensuring transparency and reliability for all users."
         />
         <meta name="viewport" content="width=device-width" />
-        <link rel="icon" type="image/png" href="/logo.png" />
+        <Favicon />
         <meta name="generator" content={Astro.generator} />
         <title>{title}</title>
         <script is:inline>

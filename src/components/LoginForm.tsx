@@ -56,7 +56,7 @@ export function LoginForm() {
               onClick={() => navigate("/")}
             >
               <ChevronsLeft className="mr-1" />
-              <p className="hover:text-blue-500">Back</p>
+              <p>Back</p>
             </Button>
 
             <CardTitle className="text-2xl mt-2">Welcome</CardTitle>

@@ -22,3 +22,15 @@ export async function fetchUsers() {
   if (!response.ok) throw new Error("Failed to fetch users");
   return response.json();
 }
+
+export function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
