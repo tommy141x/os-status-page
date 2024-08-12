@@ -263,13 +263,10 @@ export function HeaderNav({ user = null, tabs = [] }) {
       </Dialog>
       {/* Subscription Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent
-          className="sm:max-w-[425px]"
-          aria-describedby="dialog-description"
-        >
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Subscribe for Updates</DialogTitle>
-            <DialogDescription id="dialog-description">
+            <DialogDescription>
               Enter your email to subscribe to status updates.
             </DialogDescription>
           </DialogHeader>
