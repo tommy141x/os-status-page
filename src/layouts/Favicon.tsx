@@ -1,7 +1,7 @@
 // FetchLogo.jsx
 import React from "react";
-import useSWR from "swr";
-
+//import useSWR from "swr";
+/*
 const fetcher = async (url) => {
   try {
     const response = await fetch(url);
@@ -13,10 +13,10 @@ const fetcher = async (url) => {
     return "/logo.png";
   }
 };
-
+*/
 const Favicon = () => {
-  const { data: logoUrl } = useSWR("/api/upload", fetcher);
-  return <link rel="icon" type="image/png" href={logoUrl || "/logo.png"} />;
+  //const { data: logoUrl } = useSWR("/api/upload", fetcher);
+  return <link rel="icon" type="image/png" href="/api/upload" />;
 };
 
 export default Favicon;

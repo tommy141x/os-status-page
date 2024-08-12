@@ -201,6 +201,20 @@ export function HeaderNav({ user = null, tabs = [] }) {
 
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
 
+  //Drawer slows down page render
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768); // Adjust breakpoint as needed
+    };
+
+    handleResize(); // Check on mount
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
     <header className="shadow-inner w-[100%] bg-secondary/50 backdrop-blur-md bg-opacity-50 lg:max-w-screen-xl top-5 mx-auto sticky border border-secondary z-40 rounded-2xl flex justify-between items-center p-2">
       {/* User Dialog */}
@@ -307,123 +321,124 @@ export function HeaderNav({ user = null, tabs = [] }) {
       </Dialog>
 
       {/* Mobile Menu Trigger and Logo */}
-      <div className="md:hidden flex items-center justify-between w-full">
-        <a
-          href="/"
-          className="font-bold text-lg text-primary flex items-center"
-        >
-          <img
-            src={logoUrl}
-            alt="Logo"
-            width="30"
-            height="30"
-            className="mx-2"
-          />
-          {config?.name}
-        </a>
-        <Drawer>
-          <DrawerTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <Menu className="h-5 w-5 text-primary" />
-            </Button>
-          </DrawerTrigger>
-          <DrawerContent>
-            <DrawerHeader>
-              <DrawerTitle>{config?.name}</DrawerTitle>
-            </DrawerHeader>
-            <div className="p-4">
-              {tabs.map((tab) => (
-                <Button
-                  key={tab.value}
-                  variant="ghost"
-                  className="w-full justify-start mb-2"
-                  onClick={() => {
-                    navigate(`/${tab.value}`);
-                  }}
-                >
-                  <CircleDashed className="h-5 w-5 mr-2" />
-                  {tab.label}
-                </Button>
-              ))}
-              <Separator className="my-2" />
-              <div className="flex flex-col">
-                {config?.mail.enabled && (
+      {isMobile && (
+        <div className="md:hidden flex items-center justify-between w-full">
+          <a
+            href="/"
+            className="font-bold text-lg text-primary flex items-center"
+          >
+            <img
+              src={logoUrl}
+              alt="Logo"
+              width="30"
+              height="30"
+              className="mx-2"
+            />
+            {config?.name}
+          </a>
+          <Drawer>
+            <DrawerTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu className="h-5 w-5 text-primary" />
+              </Button>
+            </DrawerTrigger>
+            <DrawerContent>
+              <DrawerHeader>
+                <DrawerTitle>{config?.name}</DrawerTitle>
+              </DrawerHeader>
+              <div className="p-4">
+                {tabs.map((tab) => (
                   <Button
+                    key={tab.value}
                     variant="ghost"
                     className="w-full justify-start mb-2"
                     onClick={() => {
-                      setDialogOpen(true);
+                      navigate(`/${tab.value}`);
                     }}
                   >
-                    <Bell className="h-5 w-5 mr-2" />
-                    Subscribe/Updates
+                    <CircleDashed className="h-5 w-5 mr-2" />
+                    {tab.label}
                   </Button>
-                )}
-              </div>
-              <div className="flex flex-col">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start mb-2"
-                  onClick={() => setToggle(!isToggled)}
-                >
-                  {isToggled ? (
-                    <Sun className="h-5 w-5 mr-2" />
-                  ) : (
-                    <Moon className="h-5 w-5 mr-2" />
+                ))}
+                <Separator className="my-2" />
+                <div className="flex flex-col">
+                  {config?.mail.enabled && (
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start mb-2"
+                      onClick={() => {
+                        setDialogOpen(true);
+                      }}
+                    >
+                      <Bell className="h-5 w-5 mr-2" />
+                      Subscribe/Updates
+                    </Button>
                   )}
-                  {isToggled ? <p>Light Mode</p> : <p>Dark Mode</p>}
-                </Button>
-              </div>
-
-              <Separator className="mb-2" />
-              <div className="flex flex-col">
-                {user ? (
-                  <>
-                    {showEditUserButton ? (
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start"
-                        onClick={() => setUserDialogOpen(true)}
-                      >
-                        <CircleUserRound className="h-5 w-5 mr-2" />
-                        Edit User
-                      </Button>
+                </div>
+                <div className="flex flex-col">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start mb-2"
+                    onClick={() => setToggle(!isToggled)}
+                  >
+                    {isToggled ? (
+                      <Sun className="h-5 w-5 mr-2" />
                     ) : (
-                      user.permLevel === 0 && (
+                      <Moon className="h-5 w-5 mr-2" />
+                    )}
+                    {isToggled ? <p>Light Mode</p> : <p>Dark Mode</p>}
+                  </Button>
+                </div>
+
+                <Separator className="mb-2" />
+                <div className="flex flex-col">
+                  {user ? (
+                    <>
+                      {showEditUserButton ? (
                         <Button
                           variant="ghost"
                           className="w-full justify-start"
-                          asChild
+                          onClick={() => setUserDialogOpen(true)}
                         >
-                          <a href="/manage" className="flex items-center">
-                            <Settings className="h-5 w-5 mr-2" />
-                            Manage
-                          </a>
+                          <CircleUserRound className="h-5 w-5 mr-2" />
+                          Edit User
                         </Button>
-                      )
-                    )}
-                  </>
-                ) : (
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start"
-                    onClick={() => navigate("/login")}
-                  >
-                    <ScanFace className="h-5 w-5 mr-2" />
-                    Login
-                  </Button>
-                )}
+                      ) : (
+                        user.permLevel === 0 && (
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start"
+                            asChild
+                          >
+                            <a href="/manage" className="flex items-center">
+                              <Settings className="h-5 w-5 mr-2" />
+                              Manage
+                            </a>
+                          </Button>
+                        )
+                      )}
+                    </>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start"
+                      onClick={() => navigate("/login")}
+                    >
+                      <ScanFace className="h-5 w-5 mr-2" />
+                      Login
+                    </Button>
+                  )}
+                </div>
               </div>
-            </div>
-            <DrawerFooter>
-              <DrawerClose asChild>
-                <Button variant="outline">Close</Button>
-              </DrawerClose>
-            </DrawerFooter>
-          </DrawerContent>
-        </Drawer>
-      </div>
-
+              <DrawerFooter>
+                <DrawerClose asChild>
+                  <Button variant="outline">Close</Button>
+                </DrawerClose>
+              </DrawerFooter>
+            </DrawerContent>
+          </Drawer>
+        </div>
+      )}
       {/* Desktop Navigation */}
       <div className="hidden md:flex items-center w-full">
         <div className="flex items-center justify-between w-full">

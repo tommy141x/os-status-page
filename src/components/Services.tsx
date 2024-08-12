@@ -235,12 +235,13 @@ export const Services = memo(({ user }) => {
   }, []);
 
   useEffect(() => {
-    const fetchData = async () => {
-      await Promise.all([fetchStatusData(), fetchIncidentsData()]);
-    };
+    fetchStatusData();
+    fetchIncidentsData();
 
-    fetchData();
-    const intervalId = setInterval(fetchData, 30000);
+    const intervalId = setInterval(() => {
+      fetchStatusData();
+      fetchIncidentsData();
+    }, 30000);
 
     return () => clearInterval(intervalId);
   }, [fetchStatusData, fetchIncidentsData]);
