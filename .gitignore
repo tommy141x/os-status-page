@@ -26,3 +26,4 @@ statusdb.sqlite
 config.yml
 config.yml
 to-do.txt
+src/pages/manage/users2.astro

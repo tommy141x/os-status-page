@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
 import yaml from "js-yaml";
+import { prefetch } from "astro:prefetch";
 
 export function HeaderNav({ user = null, tabs = [] }) {
   const [config, setConfig] = useState(null);
@@ -53,6 +54,10 @@ export function HeaderNav({ user = null, tabs = [] }) {
   const [dialogOpen, setDialogOpen] = useState(false); //change to subDialogOpen
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const [isToggled, setToggle] = useState(false);
+
+  const handlePrefetch = useCallback((path) => {
+    prefetch(path, { ignoreSlowConnection: true });
+  }, []);
 
   const showEditUserButton = useMemo(() => {
     if (!user) return false;
@@ -190,13 +195,14 @@ export function HeaderNav({ user = null, tabs = [] }) {
               variant="ghost"
               className={`text-foreground ${tab.active ? "bg-secondary" : ""}`}
               onClick={() => navigate(`/${tab.value}`)}
+              onMouseEnter={() => handlePrefetch(`/${tab.value}`)}
             >
               {tab.label}
             </Button>
           </NavigationMenuLink>
         </NavigationMenuItem>
       )),
-    [tabs],
+    [tabs, handlePrefetch],
   );
 
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
