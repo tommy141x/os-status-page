@@ -336,7 +336,6 @@ export const Incidents = memo(({ user }) => {
           res.json(),
         );
         setIncidentsData(sortIncidents(updatedIncidents));
-        refreshData();
         setIsCreating(false);
         setIsEditing(false);
         setCurrentIncident(null);
@@ -379,7 +378,6 @@ export const Incidents = memo(({ user }) => {
           res.json(),
         );
         setIncidentsData(sortIncidents(updatedIncidents));
-        refreshData();
       } else {
         console.error("Failed to update incident", result.error);
       }
@@ -403,7 +401,6 @@ export const Incidents = memo(({ user }) => {
           res.json(),
         );
         setIncidentsData(sortIncidents(updatedIncidents));
-        refreshData();
       } else {
         console.error("Failed to remove incident", result.error);
       }
