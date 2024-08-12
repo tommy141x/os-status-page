@@ -216,7 +216,7 @@ export const Incidents = memo(({ user }) => {
     hour12: true,
   });
 
-  const fetchSettings = async () => {
+  const fetchSettings = useCallback(async () => {
     try {
       const response = await fetch("/api/settings");
       const data = await response.text();
@@ -225,7 +225,7 @@ export const Incidents = memo(({ user }) => {
     } catch (error) {
       console.error("Failed to fetch settings", error);
     }
-  };
+  }, []);
 
   const fetchStatusData = useCallback(async () => {
     try {
@@ -255,14 +255,18 @@ export const Incidents = memo(({ user }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      await Promise.all([fetchStatusData(), fetchIncidentsData()]);
+      await Promise.all([
+        fetchStatusData(),
+        fetchIncidentsData(),
+        fetchSettings(),
+      ]);
     };
 
     fetchData();
     const intervalId = setInterval(fetchData, 30000);
 
     return () => clearInterval(intervalId);
-  }, [fetchStatusData, fetchIncidentsData]);
+  }, [fetchStatusData, fetchIncidentsData, fetchSettings]);
 
   if (error) {
     return (
