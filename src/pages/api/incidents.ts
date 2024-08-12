@@ -59,12 +59,40 @@ async function createOrUpdateIncident(incident: any) {
     setTimeout(() => {
       let formattedType =
         type.trim().charAt(0).toUpperCase() + type.trim().slice(1);
+
+      // Find service details
+      let affectedServices = services
+        .split(",")
+        .map((service) => service.trim());
+      let formattedServices = affectedServices.map((serviceUrl) => {
+        let service = null;
+        for (const category of config.categories) {
+          for (const svc of category.services) {
+            if (svc.url === serviceUrl) {
+              service = svc;
+              break;
+            }
+          }
+          if (service) break;
+        }
+
+        if (!service) {
+          console.error(`Service not found in config: ${serviceUrl}`);
+          return serviceUrl; // Return the URL if service not found
+        }
+
+        // Determine whether to show the URL or not
+        return service.hide_url
+          ? `<b>${service.name}</b>`
+          : `<a href="${service.url}">${service.name}</a>`;
+      });
+
       sendMail({
         subject: `${formattedType} - ${title}`,
         html: `
           <h1>${config.name} - ${formattedType}</h1>
           <p>${description}</p>
-          <p>Services affected: ${services}</p>
+          <p>Services affected: ${formattedServices.join(", ")}</p>
         `,
       }).catch((error) => console.error("Error sending email:", error));
     }, 0);
