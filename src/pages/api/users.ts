@@ -90,7 +90,6 @@ export const POST: APIRoute = async ({ request }) => {
         updateValues.push(hashedPassword);
       }
       updateValues.push(id);
-
       const stmt = db.prepare(
         `UPDATE users SET ${updateFields.join(", ")} WHERE id = ?`,
       );

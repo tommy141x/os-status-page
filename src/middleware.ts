@@ -40,7 +40,7 @@ const middleware: MiddlewareResponseHandler = async (context, next) => {
       const email = decoded.email;
 
       const userStmt = db.prepare(
-        "SELECT email, permLevel FROM users WHERE email = ?",
+        "SELECT id, email, permLevel FROM users WHERE email = ?",
       );
       const userData = userStmt.get(email);
 
@@ -51,6 +51,7 @@ const middleware: MiddlewareResponseHandler = async (context, next) => {
         }
 
         context.locals.user = {
+          id: userData.id,
           email: userData.email,
           permLevel: userData.permLevel,
         };

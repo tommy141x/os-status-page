@@ -151,17 +151,24 @@ export const UsersSettings = memo(({ user }) => {
     }
   };
 
-  const handleUpdateUserRole = async (id, email, newPermLevel) => {
+  const handleUpdateUserRole = async ({
+    id,
+    email,
+    newPermLevel,
+    password,
+  }) => {
     try {
       const response = await fetch("/api/users", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        // Only push data if provided
         body: JSON.stringify({
           id,
           email,
           permLevel: parseInt(newPermLevel, 10),
+          ...(password && { password }),
         }),
       });
       if (!response.ok) throw new Error("Failed to update user role");
@@ -252,75 +259,68 @@ export const UsersSettings = memo(({ user }) => {
           { value: "manage/users", label: "Users", active: true },
         ]}
       />
-      <div className="flex-grow flex items-center justify-center">
-        <Card className="w-full max-w-4xl mx-auto p-4 my-10">
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <div className="flex items-center">
-                <CircleUserRound className="mr-1.5 w-6 h-6" />
-                <CardTitle className="text-2xl">Users</CardTitle>
-              </div>
-              <Button variant="secondary" onClick={handleAddUser}>
-                Add User
-              </Button>
+      <Card className="w-full max-w-4xl mx-auto p-4 my-10">
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <div className="flex items-center">
+              <CircleUserRound className="mr-1.5 w-6 h-6" />
+              <CardTitle className="text-2xl">Users</CardTitle>
             </div>
-            <CardDescription>
-              Manage and add your users here -{" "}
-              <small className="text-muted-foreground">
-                After adding a user, they can login at <b>/login</b>
-              </small>
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Actions</TableHead>
+            <Button variant="secondary" onClick={handleAddUser}>
+              Add User
+            </Button>
+          </div>
+          <CardDescription>Manage and add your users here.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Email</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {users.map((user) => (
+                <TableRow key={user.id}>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>
+                    <Select
+                      value={user.permLevel.toString()}
+                      onValueChange={(value) =>
+                        handleUpdateUserRole(user.id, user.email, value)
+                      }
+                      disabled={user.id === 1}
+                    >
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Select a role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Roles</SelectLabel>
+                          <SelectItem value="0">Admin</SelectItem>
+                          <SelectItem value="1">Manager</SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="destructive"
+                      onClick={() => handleDeleteUser(user.id)}
+                      disabled={user.id === 1}
+                    >
+                      <Trash2 />
+                    </Button>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
-                      <Select
-                        value={user.permLevel.toString()}
-                        onValueChange={(value) =>
-                          handleUpdateUserRole(user.id, user.email, value)
-                        }
-                        disabled={user.id === 1}
-                      >
-                        <SelectTrigger className="w-[180px]">
-                          <SelectValue placeholder="Select a role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            <SelectLabel>Roles</SelectLabel>
-                            <SelectItem value="0">Admin</SelectItem>
-                            <SelectItem value="1">Manager</SelectItem>
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="destructive"
-                        onClick={() => handleDeleteUser(user.id)}
-                        disabled={user.id === 1}
-                      >
-                        <Trash2 />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-            <Separator className="my-4" />
-          </CardContent>
-        </Card>
-      </div>
+              ))}
+            </TableBody>
+          </Table>
+          <Separator className="my-4" />
+        </CardContent>
+      </Card>
       {isAddUserDialogOpen && (
         <GenericDialog
           title="Add User"

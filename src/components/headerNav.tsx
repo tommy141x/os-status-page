@@ -9,6 +9,8 @@ import {
   Moon,
   Sun,
   ScanFace,
+  Eye,
+  EyeOff,
   CircleDashed,
 } from "lucide-react";
 import {
@@ -43,10 +45,42 @@ import yaml from "js-yaml";
 export function HeaderNav({ user = null, tabs = [] }) {
   const [config, setConfig] = useState(null);
   const [email, setEmail] = useState(user?.email || "");
+  const [newEmail, setNewEmail] = useState(user?.email || "");
+  const [newPassword, setNewPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [logoUrl, setLogoUrl] = useState("/logo.png");
   const [subscriptionStatus, setSubscriptionStatus] = useState(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false); //change to subDialogOpen
+  const [userDialogOpen, setUserDialogOpen] = useState(false);
   const [isToggled, setToggle] = useState(false);
+
+  const showEditUserButton = useMemo(() => {
+    if (!user) return false;
+    if (user.permLevel > 0) return true;
+    const activeTab = tabs.find((tab) => tab.active);
+    return activeTab && activeTab.value.includes("manage");
+  }, [user, tabs]);
+
+  const handleUpdateUser = async () => {
+    try {
+      const response = await fetch("/api/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: user.id,
+          email: newEmail,
+          ...(newPassword && { password: newPassword }),
+        }),
+      });
+      setUserDialogOpen(false);
+      setNewPassword("");
+      if (!response.ok) throw new Error("Failed to update user");
+    } catch (error) {
+      console.error("Error updating user:", error);
+    }
+  };
 
   const fetchConfig = useCallback(async () => {
     try {
@@ -165,8 +199,68 @@ export function HeaderNav({ user = null, tabs = [] }) {
     [tabs],
   );
 
+  const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
+
   return (
     <header className="shadow-inner w-[100%] bg-secondary/50 backdrop-blur-md bg-opacity-50 lg:max-w-screen-xl top-5 mx-auto sticky border border-secondary z-40 rounded-2xl flex justify-between items-center p-2">
+      {/* User Dialog */}
+      <Dialog open={userDialogOpen} onOpenChange={setUserDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+            <DialogDescription>
+              Update your user information here.
+            </DialogDescription>
+            <DialogDescription className="text-primary/30">
+              Leave password blank to keep your current password.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-[auto,1fr] gap-10 items-center">
+              <Label htmlFor="newEmail" className="text-right">
+                Email
+              </Label>
+              <Input
+                id="newEmail"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+              />
+            </div>
+            <div className="grid grid-cols-[auto,1fr] gap-4 items-center">
+              <Label htmlFor="newPassword" className="text-right">
+                Password
+              </Label>
+              <div className="relative w-full">
+                <Input
+                  id="newPassword"
+                  type={showPassword ? "text" : "password"}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full pr-10" // Full width and right padding
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={togglePasswordVisibility}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 h-full"
+                  tabIndex={-1} // Prevents focus when tabbing through form
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" onClick={handleUpdateUser}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       {/* Subscription Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent
@@ -288,27 +382,29 @@ export function HeaderNav({ user = null, tabs = [] }) {
               <div className="flex flex-col">
                 {user ? (
                   <>
-                    {user.permLevel === 0 && (
+                    {showEditUserButton ? (
                       <Button
                         variant="ghost"
                         className="w-full justify-start"
-                        asChild
+                        onClick={() => setUserDialogOpen(true)}
                       >
-                        <a href="/manage" className="flex items-center">
-                          <Settings className="h-5 w-5 mr-2" />
-                          Manage
-                        </a>
+                        <CircleUserRound className="h-5 w-5 mr-2" />
+                        Edit User
                       </Button>
+                    ) : (
+                      user.permLevel === 0 && (
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start"
+                          asChild
+                        >
+                          <a href="/manage" className="flex items-center">
+                            <Settings className="h-5 w-5 mr-2" />
+                            Manage
+                          </a>
+                        </Button>
+                      )
                     )}
-                    {/*
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start mt-2"
-                    >
-                      <LogOut className="h-5 w-5 mr-2" />
-                      Logout
-                    </Button>
-                    */}
                   </>
                 ) : (
                   <Button
@@ -365,17 +461,27 @@ export function HeaderNav({ user = null, tabs = [] }) {
                 <Bell className="h-5 w-5 text-primary" />
               </Button>
             )}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate(user ? "/manage" : "/login")}
-            >
-              {user ? (
-                <Settings className="h-5 w-5 text-primary" />
-              ) : (
+            {showEditUserButton ? (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setUserDialogOpen(true)}
+              >
                 <CircleUserRound className="h-5 w-5 text-primary" />
-              )}
-            </Button>
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate(user ? "/manage" : "/login")}
+              >
+                {user ? (
+                  <Settings className="h-5 w-5 text-primary" />
+                ) : (
+                  <CircleUserRound className="h-5 w-5 text-primary" />
+                )}
+              </Button>
+            )}
           </div>
         </div>
 
