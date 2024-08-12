@@ -15,12 +15,12 @@ The setup script includes an update checker and provides functionality for insta
     curl -O https://raw.githubusercontent.com/tommy141x/os-status-page/main/scripts/setup.sh && chmod +x setup.sh && ./setup.sh
     ```
 
-2. **Configure Your Settings:**
+2. **Configure Settings in (os-status-page):**
    - Rename `config.example.yml` to `config.yml`.
    - Change the `secret` to a secure value for storing session cookies.
    - Edit other configuration settings via the web UI.
 
-3. **Access the Status Page:**
+3. **Start with the Setup Script (../setup.sh) & Access the Status Page**
    - Default port is `3000`.
    - For Docker users, check `docker-compose.yml` for port configuration.
 
