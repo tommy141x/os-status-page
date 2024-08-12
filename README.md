@@ -8,12 +8,65 @@ This project uses BunJS, Astro, React, Tailwind, and ShadcnUI.
 
 ## Installation and Setup
 
-1. Downloading latest stable release:
+### Using the Setup Script (Recommended)
+The setup script includes an update checker and provides functionality for installing, upgrading, starting, stopping, and viewing the application's logs.
+1. **Download the Latest Stable Release:**
     ```bash
     curl -O https://raw.githubusercontent.com/tommy141x/os-status-page/main/scripts/setup.sh && chmod +x setup.sh && ./setup.sh
     ```
-2. Rename `config.example.yml` to `config.yml` and fill in the values if needed (change the secret to something else, it's for storing session cookies). You can edit everything else in the config on the web UI.
-3. Access the status page at port 3000, or the port specified in your config. If you're using Docker, the port is defined in the docker-compose.yml file.
+
+2. **Configure Your Settings:**
+   - Rename `config.example.yml` to `config.yml`.
+   - Change the `secret` to a secure value for storing session cookies.
+   - Edit other configuration settings via the web UI.
+
+3. **Access the Status Page:**
+   - Default port is `3000`.
+   - For Docker users, check `docker-compose.yml` for port configuration.
+
+### Using BunJS (Without the Setup Script)
+
+1. **Install BunJS:**
+   - **Linux & Mac:** 
+     ```bash
+     curl -fsSL https://bun.sh/install | bash
+     ```
+   - **Windows:** 
+     ```powershell
+     powershell -c "irm bun.sh/install.ps1 | iex"
+     ```
+     
+2. **Clone the Repository:**
+    ```bash
+    git clone https://github.com/tommy141x/os-status-page.git
+    ```
+
+    **Note:** Make sure to `cd` into the cloned repository directory:
+    ```bash
+    cd os-status-page
+    ```
+
+3. **Install Dependencies:**
+    ```bash
+    bun install
+    ```
+
+4. **Configure Your Settings:**
+   - Rename `config.example.yml` to `config.yml`.
+   - Change the `secret` to a secure value for storing session cookies.
+   - Edit other configuration settings via the web UI.
+
+5. **Start the Application:**
+   - Run:
+     ```bash
+     bun start
+     ```
+   - Alternatively, if using Docker:
+     ```bash
+     docker compose up
+     ```
+   - Access the status page at port `3000` by default or the port specified in `docker-compose.yml`.
+
 
 ## Features
 
