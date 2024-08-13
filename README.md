@@ -33,6 +33,10 @@ This project uses 🐰 BunJS, 🚀 Astro, ⚛️ React, 🎨 Tailwind, and 🧰 
 ## 🚀 Installation and Setup
 
 ### 📜 Using the Setup Script (Recommended)
+
+> [!IMPORTANT]
+> **It is required to use a bash shell when using the setup script.** I'm currently working on a cross platform alternative using bun shell.
+
 The setup script includes an update checker and provides functionality for installing, upgrading, starting, stopping, and viewing the application's logs.
 1. **📥 Download the Latest Stable Release:**
     ```bash
