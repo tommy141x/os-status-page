@@ -4,12 +4,18 @@
 <a href="https://status.timmygstudios.com/" target="_blank">
     <img src="https://img.shields.io/badge/🔗%20LIVE%20DEMO-blue?style=for-the-badge" alt="LIVE DEMO">
   </a>
-<a href="release" target="_blank">
+<a href="../../releases" target="_blank">
   <img src="https://img.shields.io/github/v/release/tommy141x/os-status-page?style=for-the-badge" alt="GitHub Release">
 </a>
+<a href="../../pulse" target="_blank">
   <img src="https://img.shields.io/github/contributors/tommy141x/os-status-page?style=for-the-badge" alt="GitHub contributors">
+</a>
+<a href="../../pulse" target="_blank">
   <img src="https://img.shields.io/github/stars/tommy141x/os-status-page?style=for-the-badge" alt="GitHub Repo stars">
+</a>
+<a href="LICENSE.md" target="_blank">
   <img src="https://img.shields.io/github/license/tommy141x/os-status-page?style=for-the-badge" alt="GitHub License">
+</a>
 </p>
 
 ## ✨ Features
