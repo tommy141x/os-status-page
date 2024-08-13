@@ -1,10 +1,12 @@
 ![Banner](https://private-user-images.githubusercontent.com/57594516/357255479-1cbe8b6f-fac9-4867-8d4f-07aadf06bda4.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MjM1MTYwMDQsIm5iZiI6MTcyMzUxNTcwNCwicGF0aCI6Ii81NzU5NDUxNi8zNTcyNTU0NzktMWNiZThiNmYtZmFjOS00ODY3LThkNGYtMDdhYWRmMDZiZGE0LnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNDA4MTMlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjQwODEzVDAyMjE0NFomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTBlM2I5NjhlNDY4YzkxYmY2YmVlZjFiNmJlNTg2NTk1NDQxMjkzYTQ1MjFmYmNiY2MzMjM1N2Q2NjZiZjA5ZjAmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JmFjdG9yX2lkPTAma2V5X2lkPTAmcmVwb19pZD0wIn0.IAAjnFXVMTBTkg1nbDEV2ugl3KWVO728N_k3Vo0CrXI)
 <p align="center">
 
-<a href="https://status.timmygstudios.com/">
+<a href="https://status.timmygstudios.com/" target="_blank">
     <img src="https://img.shields.io/badge/🔗%20LIVE%20DEMO-blue?style=for-the-badge" alt="LIVE DEMO">
   </a>
+<a href="release" target="_blank">
   <img src="https://img.shields.io/github/v/release/tommy141x/os-status-page?style=for-the-badge" alt="GitHub Release">
+</a>
   <img src="https://img.shields.io/github/contributors/tommy141x/os-status-page?style=for-the-badge" alt="GitHub contributors">
   <img src="https://img.shields.io/github/stars/tommy141x/os-status-page?style=for-the-badge" alt="GitHub Repo stars">
   <img src="https://img.shields.io/github/license/tommy141x/os-status-page?style=for-the-badge" alt="GitHub License">
