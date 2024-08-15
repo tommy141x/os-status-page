@@ -4,6 +4,18 @@ import { promises as fs } from "fs";
 import path from "path";
 import { loadConfig } from "../src/lib/server-utils";
 
+const logFile = "latest.log";
+try {
+  await $`rm ${logFile}`;
+} catch {
+  //Do nothing
+}
+const writeLog = async (message) => {
+  const writer = Bun.file(logFile).writer();
+  await writer.write(`${new Date().toISOString()} - ${message}\n`);
+  await writer.flush();
+};
+
 let config = await loadConfig();
 
 // Get config.port, and modify astro.config.mjs
@@ -18,13 +30,13 @@ try {
 
   if (updatedConfigContent !== astroConfigContent) {
     await fs.writeFile(astroConfigPath, updatedConfigContent);
-    console.log(`Updating astro.config.mjs port to ${config.port}`);
-    await $`bunx astro build`;
+    await writeLog(`Updating astro.config.mjs port to ${config.port}`);
+    await $`bunx astro build >> ${logFile}`;
   } else {
-    console.log(`astro.config.mjs port is already set to ${config.port}`);
+    await writeLog(`astro.config.mjs port is already set to ${config.port}`);
   }
 } catch (error) {
-  console.error("Error updating astro.config.mjs:", error);
+  await writeLog(`Error updating astro.config.mjs: ${error}`);
 }
 
 // Function to check if a directory exists
@@ -42,13 +54,16 @@ const directoryExists = async (dirPath) => {
 const runBuildIfNeeded = async () => {
   const distExists = await directoryExists("dist");
   if (!distExists) {
-    await $`bunx --bun astro build`;
+    await $`bunx --bun astro build >> ${logFile}`;
   }
 };
 
 // Run build command if necessary and start the watchers
 await runBuildIfNeeded();
 await Promise.all([
-  $`bun run src/backend.ts`,
-  $`bun run ./dist/server/entry.mjs`,
+  $`bun run src/backend.ts >> ${logFile}`,
+  $`bun run ./dist/server/entry.mjs >> ${logFile}`,
 ]);
+
+// Log completion
+await writeLog("Build and watch process completed.");
