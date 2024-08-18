@@ -55,15 +55,15 @@ The setup script includes an update checker and provides functionality for insta
 ### 🐰 Using BunJS (Without the Setup Script)
 
 1. **📦 Install BunJS:**
-   - **🐧 Linux & 🍎 Mac:** 
+   - **🐧 Linux & 🍎 Mac:**
      ```bash
      curl -fsSL https://bun.sh/install | bash
      ```
-   - **🪟 Windows:** 
+   - **🪟 Windows:**
      ```powershell
      powershell -c "irm bun.sh/install.ps1 | iex"
      ```
-     
+
 2. **📥 Clone the Repository:**
     ```bash
     git clone https://github.com/tommy141x/os-status-page.git
@@ -109,3 +109,5 @@ Contributions to this project are encouraged and appreciated. Please feel free t
 ## 📄 License
 
 This project is open source and available under the [Creative Commons Attribution-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-sa/4.0/deed.en).
+
+![Alt](https://repobeats.axiom.co/api/embed/19f88f4c6a981fc2d81415907ca79424988ffe87.svg "Repobeats analytics image")
