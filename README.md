@@ -39,6 +39,7 @@ This project uses 🐰 BunJS, 🚀 Astro, ⚛️ React, 🎨 Tailwind, and 🧰 
 
 The setup script includes an update checker and provides functionality for installing, upgrading, starting, stopping, and viewing the application's logs.
 1. **📥 Download the Latest Stable Release:**
+    - This command will download and open the setup menu, choosing install will also run the BunJS install script.
     ```bash
     curl -O https://raw.githubusercontent.com/tommy141x/os-status-page/main/scripts/setup.sh && chmod +x setup.sh && ./setup.sh
     ```
