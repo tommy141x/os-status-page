@@ -1,9 +1,6 @@
 ![Banner](https://tommy141x.github.io/os-status-page/banner.png)
 <p align="center">
 
-<a href="https://status.timmygstudios.com/" target="_blank">
-    <img src="https://img.shields.io/badge/🔗%20LIVE%20DEMO-blue?style=for-the-badge" alt="LIVE DEMO">
-  </a>
 <a href="../../releases" target="_blank">
   <img src="https://img.shields.io/github/v/release/tommy141x/os-status-page?style=for-the-badge" alt="GitHub Release">
 </a>
